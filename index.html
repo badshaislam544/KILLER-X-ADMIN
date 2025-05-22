@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Point Manager</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #202124;
+            margin-top: 0;
+            font-size: 20px;
+            font-weight: 500;
+        }
+        .path {
+            color: #5f6368;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .user-table th {
+            text-align: left;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dadce0;
+            color: #3c4043;
+            font-weight: 500;
+        }
+        .user-table td {
+            padding: 10px;
+            border-bottom: 1px solid #dadce0;
+        }
+        .user-id {
+            font-family: 'Roboto Mono', monospace;
+        }
+        .point-value {
+            font-weight: bold;
+        }
+        .edit-btn, .save-btn, .cancel-btn, .add-btn, .deduct-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .edit-btn {
+            background-color: #1a73e8;
+            color: white;
+        }
+        .save-btn {
+            background-color: #34a853;
+            color: white;
+            margin-right: 5px;
+        }
+        .cancel-btn {
+            background-color: #dadce0;
+            color: #3c4043;
+        }
+        .add-btn {
+            background-color: #1a73e8;
+            color: white;
+            margin-top: 15px;
+            margin-right: 10px;
+        }
+        .deduct-btn {
+            background-color: #fbbc04;
+            color: #202124;
+            margin-top: 15px;
+        }
+        .edit-input {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+        }
+        .actions {
+            display: flex;
+        }
+        .status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #e6f4ea;
+            color: #137333;
+            display: block;
+        }
+        .error {
+            background-color: #fce8e6;
+            color: #c5221f;
+            display: block;
+        }
+        .add-user-form {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            display: none;
+        }
+        .add-user-form input {
+            padding: 8px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .button-group {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Realtime Database</h1>
+        <div class="path">ng-mods-x2-default-rtdb > users</div>
+        
+        <div id="status" class="status"></div>
+        
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Points</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody">
+                <!-- Users will be loaded here -->
+            </tbody>
+        </table>
+        
+        <div class="button-group">
+            <button class="add-btn" onclick="showAddUserForm()">Add User</button>
+            <button class="deduct-btn" onclick="deductDailyCoins()">Daily Coin Remove (-5 from all)</button>
+        </div>
+        
+        <div id="addUserForm" class="add-user-form">
+            <input type="text" id="newUserId" placeholder="User ID">
+            <input type="number" id="newUserPoints" placeholder="Points">
+            <button class="save-btn" onclick="addNewUser()">Save</button>
+            <button class="cancel-btn" onclick="hideAddUserForm()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAueM2O16GbLJX4TmfK7g8IZfFJRMdh1WE",
+            databaseURL: "https://ng-mods-x2-default-rtdb.firebaseio.com",
+            projectId: "ng-mods-x2",
+            storageBucket: "ng-mods-x2.appspot.com"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Reference to users node
+        const usersRef = database.ref('users');
+
+        // Display all users with their points
+        function displayAllUsers() {
+            usersRef.on('value', (snapshot) => {
+                const users = snapshot.val();
+                const tableBody = document.getElementById('usersTableBody');
+                tableBody.innerHTML = '';
+
+                if (!users) {
+                    tableBody.innerHTML = '<tr><td colspan="3">No users found</td></tr>';
+                    return;
+                }
+
+                for (const userId in users) {
+                    const userPoints = users[userId];
+                    
+                    const row = document.createElement('tr');
+                    row.id = `row-${userId}`;
+                    row.innerHTML = `
+                        <td class="user-id">${userId}</td>
+                        <td class="point-value" id="points-${userId}">${userPoints}</td>
+                        <td>
+                            <div class="actions">
+                                <button class="edit-btn" onclick="enableEditPoints('${userId}')">Edit</button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                }
+            }, (error) => {
+                showStatus(`Error loading users: ${error.message}`, 'error');
+            });
+        }
+
+        // Enable edit mode for points
+        function enableEditPoints(userId) {
+            const pointsCell = document.getElementById(`points-${userId}`);
+            const currentPoints = pointsCell.textContent;
+            
+            pointsCell.innerHTML = `<input type="number" class="edit-input" id="edit-${userId}" value="${currentPoints}">`;
+            
+            const actionsCell = document.querySelector(`#row-${userId} td:last-child`);
+            actionsCell.innerHTML = `
+                <div class="actions">
+                    <button class="save-btn" onclick="saveUserPoints('${userId}')">Save</button>
+                    <button class="cancel-btn" onclick="cancelEditPoints('${userId}')">Cancel</button>
+                </div>
+            `;
+        }
+
+        // Cancel edit mode
+        function cancelEditPoints(userId) {
+            displayAllUsers(); // Reload original data
+        }
+
+        // Save points to Firebase
+        function saveUserPoints(userId) {
+            const newPoints = document.getElementById(`edit-${userId}`).value;
+            
+            usersRef.child(userId).set(parseInt(newPoints))
+                .then(() => {
+                    showStatus('Points updated successfully!', 'success');
+                    displayAllUsers();
+                })
+                .catch(error => {
+                    showStatus(`Error updating points: ${error.message}`, 'error');
+                });
+        }
+
+        // Show add user form
+        function showAddUserForm() {
+            document.getElementById('addUserForm').style.display = 'block';
+        }
+
+        // Hide add user form
+        function hideAddUserForm() {
+            document.getElementById('addUserForm').style.display = 'none';
+            document.getElementById('newUserId').value = '';
+            document.getElementById('newUserPoints').value = '';
+        }
+
+        // Add new user
+        function addNewUser() {
+            const userId = document.getElementById('newUserId').value.trim();
+            const points = document.getElementById('newUserPoints').value;
+            
+            if (!userId) {
+                showStatus('Please enter a User ID', 'error');
+                return;
+            }
+            
+            if (!points || isNaN(points)) {
+                showStatus('Please enter valid points', 'error');
+                return;
+            }
+            
+            usersRef.child(userId).set(parseInt(points))
+                .then(() => {
+                    showStatus('User added successfully!', 'success');
+                    hideAddUserForm();
+                    displayAllUsers();
+                })
+                .catch(error => {
+                    showStatus(`Error adding user: ${error.message}`, 'error');
+                });
+        }
+
+        // Deduct 5 coins from all users
+        function deductDailyCoins() {
+            if (!confirm("Are you sure you want to deduct 5 coins from ALL users?")) {
+                return;
+            }
+            
+            usersRef.once('value', (snapshot) => {
+                const users = snapshot.val();
+                const updates = {};
+                
+                for (const userId in users) {
+                    const currentPoints = users[userId] || 0;
+                    updates[userId] = Math.max(0, currentPoints - 5); // Don't go below 0
+                }
+                
+                usersRef.update(updates)
+                    .then(() => {
+                        showStatus('Deducted 5 coins from all users!', 'success');
+                        displayAllUsers();
+                    })
+                    .catch(error => {
+                        showStatus(`Error deducting coins: ${error.message}`, 'error');
+                    });
+            });
+        }
+
+        // Show status message
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            setTimeout(() => {
+                statusDiv.textContent = '';
+                statusDiv.className = 'status';
+            }, 3000);
+        }
+
+        // Initialize
+        displayAllUsers();
+    </script>
+</body>
+</html>
