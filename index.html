@@ -1,328 +1,951 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Point Manager</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Premium User Manager</title>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script> 
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+        :root {
+            --primary-color: #7e57c2;
+            --primary-light: #b085f5;
+            --primary-dark: #4d2c91;
+            --accent-color: #ffab00;
+            --accent-light: #ffdd4b;
+            --accent-dark: #c67c00;
+            --success-color: #00c853;
+            --warning-color: #ffab00;
+            --danger-color: #ff3d00;
+            --text-color: #263238;
+            --secondary-text: #607d8b;
+            --border-color: #cfd8dc;
+            --bg-color: #f5f5f6;
+            --card-bg: white;
+            --hover-light: rgba(126, 87, 194, 0.1);
+            --blocked-color: #ff5252;
+            --expired-color: #ffca28;
+            --scrollbar-thumb: #7e57c2;
+            --scrollbar-track: #f1f1f1;
+            --remember-me: #e91e63;
+            --maintenance-color: #ff7043;
+            --glass-effect: rgba(255, 255, 255, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+            --shadow-xl: 0 20px 40px rgba(0,0,0,0.15);
+
+            --admin-login-bg-dark: linear-gradient(135deg, #1A0D3A 0%, #30195E 100%); 
+            --admin-login-card-bg: rgba(255, 255, 255, 0.08); 
+            --admin-login-card-border: rgba(255, 255, 255, 0.15);
+            --admin-login-input-bg: rgba(255, 255, 255, 0.1);
+            --admin-login-input-border: rgba(255, 255, 255, 0.2);
+            --admin-login-text-color: #f0f0f0; 
+            --admin-login-placeholder-color: rgba(255, 255, 255, 0.7);
+            --admin-login-button-start: #7e57c2; 
+            --admin-login-button-end: #b085f5; 
+            --admin-login-glow-color: #8e24aa; 
+            --admin-login-error-color: #ff5252; 
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Montserrat', 'Poppins', sans-serif; margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-color); min-height: 100vh; overflow-x: hidden; background-image: linear-gradient(135deg, #f5f7fa 0%, #f5f5f6 100%); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary-dark); }
+        
+        .horizontal-navbar { background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; padding: 15px 0; box-shadow: var(--shadow-lg); border-radius: 12px; margin: 20px 20px 30px; backdrop-filter: blur(10px); border: 1px solid var(--glass-border); }
+        .horizontal-navbar .nav-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; /* Reduced gap */ margin-bottom: 10px; }
+        .horizontal-navbar .menu-item { background: rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 10px 18px; /* Adjusted padding */ font-size:0.9rem; /* Adjusted font size */ transition: all 0.3s ease; cursor: pointer; font-weight: 500; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; position: relative; overflow: hidden; border: 1px solid var(--glass-border); backdrop-filter: blur(5px); }
+        .horizontal-navbar .menu-item::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: 0.5s; }
+        .horizontal-navbar .menu-item:hover::before { left: 100%; }
+        .horizontal-navbar .menu-item:hover, .horizontal-navbar .menu-item.active { background: rgba(255,255,255,0.25); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .horizontal-navbar .menu-item.active { background: rgba(255,255,255,0.3); font-weight: 600; }
+        .horizontal-navbar .menu-item i { font-size: 1rem; /* Adjusted icon size */ }
+        
+        .main-content { padding: 0 20px 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+        .header h1 { font-size: 1.8rem; font-weight: 600; color: var(--primary-dark); position: relative; padding-left: 15px; }
+        .header h1::before { content: ''; position: absolute; left: 0; top: 5px; bottom: 5px; width: 4px; background: var(--primary-color); border-radius: 4px; }
+        .header .date { font-size: 0.9rem; color: var(--secondary-text); background: rgba(126, 87, 194, 0.1); padding: 8px 15px; border-radius: 20px; font-weight: 500; }
+        
+        .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjusted minmax */ gap: 20px; /* Adjusted gap */ margin-bottom: 40px; }
+        .stat-card { background: var(--card-bg); padding: 20px; /* Adjusted padding */ border-radius: 12px; box-shadow: var(--shadow-md); text-align: center; transition: all 0.3s ease; position: relative; overflow: hidden; border: none; }
+        .stat-card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--primary-color), var(--primary-light)); }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+        .stat-card h3 { font-size: 0.9rem; /* Adjusted font size */ color: var(--secondary-text); margin-bottom: 8px; font-weight: 500; }
+        .stat-card .value { font-size: 1.8rem; /* Adjusted font size */ font-weight: 700; color: var(--primary-dark); margin: 8px 0; position: relative; display: inline-block; }
+        .stat-card .value::after { content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background: var(--accent-color); border-radius: 3px; }
+        
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-md); transition: all 0.3s ease; }
+        .data-table:hover { box-shadow: var(--shadow-lg); }
+        .data-table th { background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; padding: 15px; text-align: left; font-weight: 500; letter-spacing: 0.5px; position: relative; }
+        .data-table th::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; background: rgba(255,255,255,0.3); }
+        .data-table td { padding: 15px; border-bottom: 1px solid var(--border-color); transition: all 0.2s ease; }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover td { background: var(--hover-light); }
+        
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-family: 'Montserrat', sans-serif; cursor: pointer; transition: all 0.3s ease; font-weight: 500; letter-spacing: 0.5px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+        .btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transition: 0.5s; }
+        .btn:hover::before { left: 100%; }
+        .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn:active { transform: translateY(0); box-shadow: var(--shadow-sm); }
+        .btn i { font-size: 0.9rem; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; }
+        .btn-primary:hover { background: linear-gradient(135deg, var(--primary-dark), var(--primary-color)); }
+        .btn-danger { background: linear-gradient(135deg, var(--danger-color), #ff6e40); color: white; }
+        .btn-danger:hover { background: linear-gradient(135deg, #ff6e40, var(--danger-color)); }
+        .btn-success { background: linear-gradient(135deg, var(--success-color), #5efc82); color: white; }
+        .btn-success:hover { background: linear-gradient(135deg, #5efc82, var(--success-color)); }
+        .btn-warning { background: linear-gradient(135deg, var(--warning-color), var(--accent-light)); color: var(--text-color); }
+        .btn-warning:hover { background: linear-gradient(135deg, var(--accent-light), var(--warning-color)); }
+        .btn-accent { background: linear-gradient(135deg, var(--accent-color), var(--accent-light)); color: var(--text-color); }
+        .btn-accent:hover { background: linear-gradient(135deg, var(--accent-light), var(--accent-color)); }
+        .btn-sm { padding: 8px 15px; font-size: 0.85rem; }
+
+        .tab-content { display: none; animation: fadeIn 0.5s; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; overflow-y: auto; }
+        .modal.show { opacity: 1; display: flex; }
+        .modal-content { background-color: white; margin: 20px; padding: 0; border-radius: 16px; width: 90%; max-width: 600px; box-shadow: var(--shadow-xl); transform: translateY(20px); transition: all 0.3s ease; overflow: hidden; }
+        .modal.show .modal-content { transform: translateY(0); }
+        .modal-header { padding: 20px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 1.3rem; color: var(--primary-dark); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(to right, rgba(126, 87, 194, 0.1), white); }
+        .modal-header .close { font-size: 1.8rem; font-weight: 300; color: var(--secondary-text); cursor: pointer; transition: all 0.2s ease; }
+        .modal-header .close:hover { color: var(--danger-color); transform: rotate(90deg); }
+        .modal-body { padding: 20px; max-height: 70vh; /* Increased max-height */ overflow-y: auto; }
+        .modal-footer { padding: 15px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background-color: #f9f9f9; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--secondary-text); }
+        .form-control { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-family: 'Montserrat', sans-serif; transition: all 0.3s ease; background-color: white; }
+        .form-control:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(126, 87, 194, 0.2); }
+        .form-group input[type="checkbox"] { width: auto; height: auto; margin-right: 5px; vertical-align: middle; }
+        textarea.form-control { min-height: 120px; resize: vertical; }
+        
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; display: inline-block; box-shadow: var(--shadow-sm); }
+        .status-active { background-color: rgba(0, 200, 83, 0.1); color: var(--success-color); border: 1px solid rgba(0, 200, 83, 0.3); }
+        .status-blocked { background-color: rgba(255, 61, 0, 0.1); color: var(--danger-color); border: 1px solid rgba(255, 61, 0, 0.3); }
+        .status-expired { background-color: rgba(255, 171, 0, 0.1); color: var(--warning-color); border: 1px solid rgba(255, 171, 0, 0.3); }
+        .status-pending_verification { background-color: rgba(253, 203, 110, 0.2); color: #d68910; border: 1px solid rgba(253, 203, 110, 0.4); }
+        
+        .action-buttons { display: flex; gap: 8px; }
+        .action-buttons .btn { padding: 8px 12px; font-size: 12px; border-radius: 6px; }
+        
+        #login-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--admin-login-bg-dark); font-family: 'Montserrat', sans-serif; position: relative; overflow: hidden; }
+        #login-screen .particle-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; }
+        #login-screen .particle-overlay::before, #login-screen .particle-overlay::after { content: ''; position: absolute; top: 0; left: 0; width: 200%; height: 200%; background-repeat: repeat; }
+        #login-screen .particle-overlay::before { background-image: radial-gradient(circle, rgba(180, 140, 255, 0.2) 1px, transparent 1px); background-size: 25px 25px; animation: moveParticlesX 35s linear infinite, moveParticlesY 45s linear infinite; filter: blur(0.8px); opacity: 0.8; }
+        #login-screen .particle-overlay::after { background-image: radial-gradient(circle, rgba(200, 160, 255, 0.15) 1px, transparent 1px); background-size: 40px 40px; animation: moveParticlesX 50s linear infinite reverse, moveParticlesY 60s linear infinite reverse; filter: blur(0.5px); opacity: 0.6; }
+        @keyframes moveParticlesX { 0% { background-position-x: 0; } 100% { background-position-x: -200%; } }
+        @keyframes moveParticlesY { 0% { background-position-y: 0; } 100% { background-position-y: -200%; } }
+        #login-screen > div { background: var(--admin-login-card-bg); padding: 40px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.5), 0 0 80px var(--admin-login-glow-color); max-width: 400px; width: 100%; position: relative; z-index: 1; transform: scale(0.95); opacity: 0; animation: loginFadeIn 0.5s ease-out 0.3s forwards; backdrop-filter: blur(15px); border: 1px solid var(--admin-login-card-border); }
+        @keyframes loginFadeIn { to { transform: scale(1); opacity: 1; } }
+        #login-screen h2 { margin-bottom: 25px; text-align: center; color: var(--admin-login-text-color); font-weight: 600; font-size: 2rem; text-shadow: var(--shadow-sm); }
+        #login-screen .form-group label { color: var(--admin-login-text-color); font-weight: 500; }
+        #login-screen .form-group input[type="text"], #login-screen .form-group input[type="password"] { width: 100%; padding: 14px 15px; margin-top: 8px; border: 1px solid var(--admin-login-input-border); border-radius: 10px; font-size: 16px; transition: all 0.3s ease; background: var(--admin-login-input-bg); color: var(--admin-login-text-color); }
+        #login-screen .form-group input::placeholder { color: var(--admin-login-placeholder-color); }
+        #login-screen .form-group input[type="text"]:focus, #login-screen .form-group input[type="password"]:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(126, 87, 194, 0.4); background: rgba(255, 255, 255, 0.15); }
+        #login-screen .form-group input[type="checkbox"] { width: 20px; height: 20px; appearance: none; background-color: var(--admin-login-input-bg); border: 1px solid var(--admin-login-input-border); border-radius: 4px; cursor: pointer; transition: all 0.2s ease; position: relative; flex-shrink: 0; }
+        #login-screen .form-group input[type="checkbox"]::before { content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 14px; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); transition: transform 0.2s ease; pointer-events: none; }
+        #login-screen .form-group input[type="checkbox"]:checked { background-color: var(--primary-color); border-color: var(--primary-color); }
+        #login-screen .form-group input[type="checkbox"]:checked::before { transform: translate(-50%, -50%) scale(1); }
+        #login-screen .form-group input[type="checkbox"]:focus { outline: none; box-shadow: 0 0 0 3px rgba(126, 87, 194, 0.4); }
+        #login-screen .form-group label[for="remember-me"] { margin-bottom: 0; }
+        #login-screen button { margin-top: 30px; width: 100%; padding: 16px; background: linear-gradient(135deg, var(--admin-login-button-start), var(--admin-login-button-end)); color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(126, 87, 194, 0.4); display: flex; align-items: center; justify-content: center; gap: 10px; }
+        #login-screen button:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(126, 87, 194, 0.6); background: linear-gradient(135deg, var(--admin-login-button-end), var(--admin-login-button-start)); }
+        #login-screen button:active { transform: translateY(0); box-shadow: 0 4px 15px rgba(126, 87, 194, 0.3); }
+        #login-error { color: var(--admin-login-error-color); margin-top: 15px; text-align: center; display: none; font-weight: 500; background: rgba(255, 61, 0, 0.15); padding: 8px 15px; border-radius: 8px; border: 1px solid rgba(255, 61, 0, 0.3); color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        
+        .form-container { background: var(--card-bg); padding: 25px; border-radius: 10px; box-shadow: var(--shadow-md); max-width: 800px; margin: 0 auto 30px; transition: all 0.3s ease; }
+        .form-container:hover { box-shadow: var(--shadow-lg); }
+        .form-container h2 { margin-bottom: 20px; color: var(--primary-dark); display: flex; align-items: center; gap: 10px; font-size: 1.4rem; }
+        .form-container h2 i { font-size: 1.5rem; }
+
+        .notification-form-group { margin-bottom: 20px; }
+        .notification-form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--secondary-text); }
+        .notification-form-control { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-family: 'Montserrat', sans-serif; transition: all 0.3s ease; }
+        .notification-form-control:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(126, 87, 194, 0.2); }
+        .notification-form-control textarea { min-height: 150px; resize: vertical; }
+        
+        .notification-item { padding: 15px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px; border-radius: 8px; background: white; box-shadow: var(--shadow-sm); transition: all 0.3s ease; }
+        .notification-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .notification-item:last-child { border-bottom: none; margin-bottom: 0; }
+        .notification-meta { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; color: var(--secondary-text); }
+        .notification-message { white-space: pre-wrap; line-height: 1.6; font-size: 0.95rem; }
+        .notification-recipient { font-weight: 600; color: var(--primary-color); }
+        .notification-item h4 { margin-bottom: 5px; color: var(--primary-dark); }
+        
+        .maintenance-section { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: var(--shadow-md); margin-bottom: 25px; transition: all 0.3s ease; }
+        .maintenance-section:hover { box-shadow: var(--shadow-lg); }
+        .maintenance-section h3 { font-size: 1.2rem; margin-bottom: 20px; color: var(--primary-dark); display: flex; align-items: center; gap: 10px; }
+        .maintenance-section h3 i { font-size: 1.4rem; }
+        
+        .tool-card { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: var(--shadow-md); text-align: center; transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden; }
+        .tool-card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--primary-color), var(--primary-light)); }
+        .tool-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+        .tool-card h3 { font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 10px; }
+        .tool-card p { font-size: 0.9rem; color: var(--secondary-text); }
+        
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; background-image: linear-gradient(135deg, #f5f7fa 0%, #f5f5f6 100%); display: none; }
+        .particle { position: absolute; background: rgba(126, 87, 194, 0.2); border-radius: 50%; animation: float linear infinite; }
+        @keyframes float { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-100vh) rotate(360deg); } }
+        
+        .glow { position: relative; }
+        .glow::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at center, rgba(126, 87, 194, 0.3) 0%, transparent 70%); opacity: 0; transition: opacity 0.3s ease; }
+        .glow:hover::after { opacity: 1; }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .pulse { animation: pulse 2s infinite; }
+        
+        .shine { position: relative; overflow: hidden; z-index: 1; }
+        .shine::after { content: ''; position: absolute; top: -50%; left: -60%; width: 40%; height: 200%; background: linear-gradient( to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0) 100% ); transform: rotate(30deg); transition: all 0.5s ease; }
+        .shine:hover::after { left: 120%; }
+        
+        .tooltip { position: relative; display: inline-block; }
+        .tooltip .tooltiptext { visibility: hidden; width: 120px; background-color: var(--primary-dark); color: white; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 12px; }
+        .tooltip .tooltiptext::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: var(--primary-dark) transparent transparent transparent; }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+
+        .clickable-cell { cursor: pointer; color: var(--primary-color); font-weight: 500; }
+        .clickable-cell:hover { text-decoration: underline; color: var(--primary-dark); }
+
+        @media (max-width: 768px) {
+            .stats-container { grid-template-columns: 1fr; }
+            .horizontal-navbar .nav-row { flex-direction: column; align-items: center; gap: 10px; }
+            .horizontal-navbar .menu-item { width: 90%; justify-content: center; padding: 10px 15px; font-size: 0.85rem;}
+            .horizontal-navbar .menu-item i { font-size: 0.9rem; }
+            .action-buttons { flex-direction: column; gap: 5px; align-items: stretch; }
+            .action-buttons .btn { width: 100%; }
+            .modal-content { width: 95%; max-width: 95%; }
+            #login-screen > div { margin: 20px; padding: 30px; }
+            #login-screen h2 { font-size: 1.7rem; }
+            #login-screen button { font-size: 16px; padding: 14px; }
+            #login-screen .form-group input { font-size: 15px; padding: 12px 15px; }
+            #login-screen .form-group label { font-size: 0.9rem; }
+            .form-container { padding: 20px; }
         }
-        h1 {
-            color: #202124;
-            margin-top: 0;
-            font-size: 20px;
-            font-weight: 500;
-        }
-        .path {
-            color: #5f6368;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-        .user-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .user-table th {
-            text-align: left;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #dadce0;
-            color: #3c4043;
-            font-weight: 500;
-        }
-        .user-table td {
-            padding: 10px;
-            border-bottom: 1px solid #dadce0;
-        }
-        .user-id {
-            font-family: 'Roboto Mono', monospace;
-        }
-        .point-value {
-            font-weight: bold;
-        }
-        .edit-btn, .save-btn, .cancel-btn, .add-btn, .deduct-btn {
-            padding: 6px 12px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            font-size: 13px;
-        }
-        .edit-btn {
-            background-color: #1a73e8;
-            color: white;
-        }
-        .save-btn {
-            background-color: #34a853;
-            color: white;
-            margin-right: 5px;
-        }
-        .cancel-btn {
-            background-color: #dadce0;
-            color: #3c4043;
-        }
-        .add-btn {
-            background-color: #1a73e8;
-            color: white;
-            margin-top: 15px;
-            margin-right: 10px;
-        }
-        .deduct-btn {
-            background-color: #fbbc04;
-            color: #202124;
-            margin-top: 15px;
-        }
-        .edit-input {
-            width: 80px;
-            padding: 5px;
-            border: 1px solid #dadce0;
-            border-radius: 4px;
-        }
-        .actions {
-            display: flex;
-        }
-        .status {
-            margin: 15px 0;
-            padding: 10px;
-            border-radius: 4px;
-            display: none;
-        }
-        .success {
-            background-color: #e6f4ea;
-            color: #137333;
-            display: block;
-        }
-        .error {
-            background-color: #fce8e6;
-            color: #c5221f;
-            display: block;
-        }
-        .add-user-form {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            display: none;
-        }
-        .add-user-form input {
-            padding: 8px;
-            border: 1px solid #dadce0;
-            border-radius: 4px;
-            margin-right: 10px;
-        }
-        .button-group {
-            margin-top: 15px;
-        }
-    </style>
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Realtime Database</h1>
-        <div class="path">ng-mods-x2-default-rtdb > users</div>
-        
-        <div id="status" class="status"></div>
-        
-        <table class="user-table">
-            <thead>
-                <tr>
-                    <th>User ID</th>
-                    <th>Points</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="usersTableBody">
-                <!-- Users will be loaded here -->
-            </tbody>
-        </table>
-        
-        <div class="button-group">
-            <button class="add-btn" onclick="showAddUserForm()">Add User</button>
-            <button class="deduct-btn" onclick="deductDailyCoins()">Daily Coin Remove (-5 from all)</button>
+<div class="particles" id="particles"></div>
+
+<div id="login-screen">
+    <div class="particle-overlay"></div>
+    <div>
+        <h2>Admin Login</h2>
+        <div class="form-group">
+            <label for="login-username">Username</label>
+            <input id="login-username" placeholder="Enter username" type="text"/>
         </div>
-        
-        <div id="addUserForm" class="add-user-form">
-            <input type="text" id="newUserId" placeholder="User ID">
-            <input type="number" id="newUserPoints" placeholder="Points">
-            <button class="save-btn" onclick="addNewUser()">Save</button>
-            <button class="cancel-btn" onclick="hideAddUserForm()">Cancel</button>
+        <div class="form-group" style="margin-top: 18px;">
+            <label for="login-password">Password</label>
+            <input id="login-password" placeholder="Enter password" type="password"/>
+        </div>
+        <div class="form-group" style="margin-top: 15px; display: flex; align-items: center; justify-content: flex-start; gap: 8px;">
+            <input type="checkbox" id="remember-me">
+            <label for="remember-me" style="color: var(--admin-login-text-color); font-weight: normal;">Remember Me</label>
+        </div>
+        <button class="shine" onclick="performLogin()">
+            <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+        <p id="login-error">Invalid credentials!</p>
+    </div>
+</div>
+
+<div id="admin-panel" style="display: none;">
+<div class="main-content">
+<div class="horizontal-navbar">
+<ul class="sidebar-menu" style="display: flex; flex-direction: column; gap: 10px; align-items: center; list-style: none; padding: 0;">
+    <div class="nav-row" style="margin-bottom: 0;">
+        <li class="menu-item active" data-tab="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+        <li class="menu-item" data-tab="user-list"><i class="fas fa-users"></i> All Users</li>
+        <li class="menu-item" data-tab="block-users"><i class="fas fa-user-lock"></i> Block/Unblock</li>
+        <li class="menu-item" data-tab="create-user"><i class="fas fa-user-plus"></i> Create User</li>
+    </div>
+    <div class="nav-row" style="margin-bottom: 0;">
+        <li class="menu-item" data-tab="redeem-codes"><i class="fas fa-gift"></i> Redeem Codes</li>
+        <li class="menu-item" data-tab="tools"><i class="fas fa-wrench"></i> Tools</li>
+        <li class="menu-item" data-tab="maintenance"><i class="fas fa-tools"></i> Maintenance</li>
+        <li class="menu-item" data-tab="pending-transactions"><i class="fas fa-money-bill-wave"></i> Transactions</li>
+    </div>
+    <div class="nav-row" style="margin-bottom: 0;">
+        <li class="menu-item" data-tab="notifications"><i class="fas fa-bell"></i> Notifications</li>
+        <li class="menu-item" data-tab="manage-store"><i class="fas fa-store"></i> Manage Store</li>
+        <li class="menu-item" data-tab="panel-link-updater"><i class="fas fa-link"></i> Panel Links</li>
+    </ul>
+</div>
+
+<!-- Dashboard Tab -->
+<div class="tab-content active" id="dashboard">
+    <div class="header">
+        <h1>Dashboard Overview</h1>
+        <div class="date">Today: <span id="current-date"></span></div>
+    </div>
+    <div class="stats-container">
+        <div class="stat-card"><h3>Total Users</h3><div class="value" id="total-users">0</div></div>
+        <div class="stat-card"><h3>Active Users</h3><div class="value" id="active-users">0</div></div>
+        <div class="stat-card"><h3>Blocked Users</h3><div class="value" id="blocked-users">0</div></div>
+        <div class="stat-card"><h3>Pending Transactions</h3><div class="value" id="pending-transactions-count">0</div></div>
+        <div class="stat-card"><h3>Deposits (Last 3 Days)</h3><div class="value" id="deposits-3-days">৳0</div></div>
+        <div class="stat-card"><h3>Deposits (Last 7 Days)</h3><div class="value" id="deposits-7-days">৳0</div></div>
+        <div class="stat-card"><h3>Deposits (Last 30 Days)</h3><div class="value" id="deposits-30-days">৳0</div></div>
+    </div>
+    <h2>Recent Activity</h2>
+    <button class="btn btn-warning" onclick="clearOldActivity()" style="margin-bottom: 15px;">
+       <i class="fas fa-eraser"></i> Clear Old Activity (older than 5h)
+    </button>
+    <table class="data-table">
+        <thead><tr><th>User ID</th><th>Activity</th><th>Time</th></tr></thead>
+        <tbody id="recent-activity"><tr><td colspan="3" style="text-align: center;">Loading...</td></tr></tbody>
+    </table>
+</div>
+
+<!-- All User List Tab -->
+<div class="tab-content" id="user-list">
+    <div class="header">
+        <h1>All User List</h1>
+        <button class="btn btn-primary" onclick="exportUsers()"><i class="fas fa-download"></i> Export</button>
+    </div>
+    <table class="data-table">
+        <thead><tr><th>User ID</th><th>Balance</th><th>HWID</th><th>Join Date</th><th>Expiry Date</th><th>General Status</th><th>Batch Status</th><th>Actions</th></tr></thead>
+        <tbody id="all-users"><tr><td colspan="8" style="text-align: center;">Loading users...</td></tr></tbody>
+    </table>
+</div>
+
+<!-- Block/Unblock Users Tab -->
+<div class="tab-content" id="block-users">
+    <div class="header">
+        <h1>Block/Unblock Users</h1>
+        <div class="search"><input id="user-search" placeholder="Search users..." class="form-control" type="text"/></div>
+    </div>
+    <table class="data-table">
+        <thead><tr><th>User ID</th><th>HWID</th><th>Status</th><th>Expiry Date</th><th>Last Active</th><th>Actions</th></tr></thead>
+        <tbody id="block-users-list"><tr><td colspan="6" style="text-align: center;">Loading users...</td></tr></tbody>
+    </table>
+</div>
+
+<!-- Create User Tab -->
+<div class="tab-content" id="create-user">
+    <div class="header"><h1>Create New User</h1></div>
+    <div class="form-container">
+        <h2><i class="fas fa-user-plus"></i> New User Details</h2>
+        <div class="form-group"><label for="new-user-id">User ID</label><input id="new-user-id" placeholder="Enter unique user ID" class="form-control" type="text"/></div>
+        <div class="form-group"><label for="new-user-balance">Initial Balance</label><input id="new-user-balance" placeholder="Enter initial balance" class="form-control" type="number"/></div>
+        <div class="form-group"><label for="new-user-machine">Machine ID (HWID)</label><input id="new-user-machine" placeholder="Leave empty - will be set at first login" readonly class="form-control" type="text"/></div>
+        <div class="form-group"><label for="new-user-expiry">Expiry Date</label><input id="new-user-expiry" class="form-control" type="date"/></div>
+        <button class="btn btn-primary" onclick="createUser()" style="width: 100%;"><i class="fas fa-user-plus"></i> Create User</button>
+    </div>
+</div>
+
+<!-- Pending Transactions Tab -->
+<div class="tab-content" id="pending-transactions">
+    <div class="header"><h1>Pending Transactions</h1><div class="total">Total Pending: <span id="total-pending-amount">৳0</span></div></div>
+    <table class="data-table">
+        <thead><tr><th>User ID</th><th>Amount (Method)</th><th>Payment Txn ID</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="pending-transactions-list"><tr><td colspan="6" style="text-align: center;">No pending transactions found</td></tr></tbody>
+    </table>
+</div>
+
+<!-- Notifications Tab -->
+<div class="tab-content" id="notifications">
+    <div class="header"><h1>Send Notifications</h1></div>
+    <div class="form-container">
+        <h2><i class="fas fa-paper-plane"></i> Compose Notification</h2>
+        <div class="notification-form-group"><label>Send To</label><select class="notification-form-control" id="notification-recipient"><option value="all">All Users</option><option value="specific">Specific User</option></select></div>
+        <div class="notification-form-group" id="specific-user-group" style="display: none;"><label for="specific-user-id">User ID</label><input class="notification-form-control" id="specific-user-id" placeholder="Enter user ID" type="text"/></div>
+        <div class="form-group"><label for="notification-title">Title (Optional)</label><input class="notification-form-control" id="notification-title" placeholder="Enter notification title" type="text"/></div>
+        <div class="form-group"><label for="notification-message">Message</label><textarea class="notification-form-control" id="notification-message" placeholder="Enter your notification message here..."></textarea></div>
+        <button class="btn btn-primary" onclick="sendNotification()" style="width: 100%;"><i class="fas fa-envelope"></i> Send Notification</button>
+    </div>
+    <div class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+             <h2><i class="fas fa-history"></i> Sent Notification History</h2>
+             <button class="btn btn-danger btn-sm" onclick="clearAdminNotificationHistory()"><i class="fas fa-trash-alt"></i> Clear All History</button>
+        </div>
+        <div id="notification-history-list"><div class="notification-item" style="text-align:center;">Loading notification history...</div></div>
+    </div>
+</div>
+
+<!-- Maintenance Tab -->
+<div class="tab-content" id="maintenance">
+    <div class="header"><h1>Maintenance Control Panel</h1></div>
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="maintenance-section"><h3><i class="fas fa-desktop"></i> Panel Maintenance</h3><button class="btn btn-warning" id="panel-maintenance-toggle" onclick="toggleMaintenanceStatus('panel')">Loading...</button><textarea id="panel-maintenance-message" placeholder="Enter panel maintenance message..." class="form-control" style="margin-top: 10px;"></textarea><button class="btn btn-primary" onclick="saveMaintenanceMessage('panel')" style="margin-top: 10px;">Save Panel Message</button></div>
+        <div class="maintenance-section"><h3><i class="fas fa-server"></i> Server Maintenance</h3><button class="btn btn-warning" id="server-maintenance-toggle" onclick="toggleMaintenanceStatus('server')">Loading...</button><textarea id="server-maintenance-message" placeholder="Enter server maintenance message..." class="form-control" style="margin-top: 10px;"></textarea><button class="btn btn-primary" onclick="saveMaintenanceMessage('server')" style="margin-top: 10px;">Save Server Message</button></div>
+    </div>
+</div>
+
+<!-- Tools Tab -->
+<div class="tab-content" id="tools">
+    <div class="header"><h1>Tools Control Panel</h1></div>
+    <div class="stats-container" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+        <div class="tool-card" onclick="openToolPopup('BlueStacks 5')"><h3>BlueStacks 5</h3><p>Click to edit link</p></div>
+        <div class="tool-card" onclick="openToolPopup('Free Fire')"><h3>Free Fire</h3><p>Click to edit link</p></div>
+        <div class="tool-card" onclick="openToolPopup('MSI 5')"><h3>MSI 5</h3><p>Click to edit link</p></div>
+        <div class="tool-card" onclick="openToolPopup('Requirement')"><h3>Requirement</h3><p>Click to edit link</p></div>
+    </div>
+</div>
+
+<!-- Redeem Codes Tab -->
+<div class="tab-content" id="redeem-codes">
+    <div class="header"><h1>Redeem Code Generator</h1></div>
+    <div class="form-container">
+        <h2><i class="fas fa-gift"></i> Generate New Code</h2>
+        <div class="form-group"><label>Code Type:</label><div style="display: flex; gap: 15px;"><label for="code-type-balance" style="display: flex; align-items: center; gap: 5px; color: var(--text-color);"><input type="radio" id="code-type-balance" name="code-type" value="balance" checked> Balance Code</label><label for="code-type-time" style="display: flex; align-items: center; gap: 5px; color: var(--text-color);"><input type="radio" id="code-type-time" name="code-type" value="time"> Time Code</label></div></div>
+        <div id="balance-options"><div class="form-group"><label for="redeem-code-balance">Balance to Add</label><input id="redeem-code-balance" type="number" min="0" value="0" class="form-control" placeholder="Enter balance amount"/></div></div>
+        <div id="time-options" style="display: none;"><div class="form-group"><label>Time to Add (Days, Hours, Minutes)</label><div style="display: flex; gap: 10px;"><input id="redeem-code-days" type="number" min="0" value="0" class="form-control" placeholder="Days"/><input id="redeem-code-hours" type="number" min="0" value="0" class="form-control" placeholder="Hours"/><input id="redeem-code-minutes" type="number" min="0" value="0" class="form-control" placeholder="Minutes"/></div></div></div>
+        <div class="form-group"><label for="redeem-code-limit">Claim Limit</label><input id="redeem-code-limit" type="number" min="1" value="1" class="form-control" placeholder="How many times can this code be claimed?"/></div>
+        <div class="form-group"><label for="redeem-code-validity-days">Code Validity (Days)</label><input id="redeem-code-validity-days" type="number" min="0" value="0" class="form-control" placeholder="Code valid for X days (0 for never expires)"/></div>
+        <button class="btn btn-primary" onclick="generateRedeemCode()" style="width: 100%; margin-top: 15px;"><i class="fas fa-magic"></i> Generate Redeem Code</button>
+        <div style="margin-top: 20px; text-align: center; background: #e0f2f7; padding: 15px; border-radius: 8px; border: 1px dashed var(--primary-color); display: none;" id="generated-code-display"><p style="font-weight: 600; color: var(--primary-dark); margin-bottom: 10px;">Generated Code:</p><code style="font-size: 1.4rem; font-weight: 700; color: var(--accent-color); user-select: all;" id="display-generated-code"></code><button class="btn btn-accent" onclick="copyGeneratedCode()" style="margin-top: 10px; padding: 8px 15px; font-size: 0.9rem;"><i class="fas fa-copy"></i> Copy</button></div>
+    </div>
+    <div class="form-container" style="margin-top: 40px;">
+        <h2><i class="fas fa-list-ul"></i> Redeem Code History</h2>
+        <table class="data-table"><thead><tr><th>Code</th><th>Balance</th><th>Time Added</th><th>Claim Limit</th><th>Claimed</th><th>Status</th><th>Valid Until</th><th>Created</th><th>Actions</th></tr></thead><tbody id="redeem-code-list"><tr><td colspan="9" style="text-align: center;">Loading redeem codes...</td></tr></tbody></table>
+    </div>
+</div>
+
+<!-- Manage Store Tab -->
+<div class="tab-content" id="manage-store">
+    <div class="header"><h1>Manage Store Products</h1></div>
+    <div class="form-container">
+        <h2><i class="fas fa-upload"></i> Image Uploader</h2>
+        <p style="color: var(--secondary-text); margin-bottom: 20px; font-size: 0.9rem;">Upload an image to get a public URL for your product.</p>
+        <div class="form-group"><label for="image-upload-input">Select Image File</label><input type="file" id="image-upload-input" accept="image/*" class="form-control" style="padding: 10px;"/></div>
+        <div class="form-group"><button class="btn btn-primary" onclick="uploadImage()" style="width: 100%;"><i class="fas fa-arrow-alt-circle-up"></i> Upload Image</button><div id="upload-progress-bar" style="width: 0%; height: 5px; background-color: var(--primary-color); border-radius: 5px; margin-top: 10px; transition: width 0.3s ease; display: none;"></div><img id="uploaded-image-preview" src="" alt="Preview" style="max-width: 100%; margin-top: 15px; border-radius: 8px; display: none;"/></div>
+        <div class="form-group" style="margin-top: 15px;"><label for="uploaded-image-url">Uploaded Image URL</label><div style="display: flex; gap: 10px;"><input id="uploaded-image-url" type="text" class="form-control" readonly placeholder="URL will appear here" style="flex-grow: 1;"/><button class="btn btn-accent" onclick="copyUploadedImageUrl()" id="copy-image-url-btn" disabled><i class="fas fa-copy"></i> Copy URL</button></div><p id="upload-status-message" style="margin-top: 8px; font-size: 0.85rem; color: var(--secondary-text); display: none;"></p></div>
+    </div>
+    <div class="form-container">
+        <h2><i class="fas fa-cart-plus"></i> Add New Product</h2>
+        <div class="form-group"><label for="product-image-url">Image URL</label><input id="product-image-url" type="text" class="form-control" placeholder="Enter image URL or use uploaded one"/></div>
+        <div class="form-group"><label for="product-title">Product Title</label><input id="product-title" type="text" class="form-control" placeholder="Enter product title"/></div>
+        <div class="form-group"><label for="product-price">Price (৳)</label><input id="product-price" type="number" min="0" value="0" class="form-control" placeholder="Enter product price"/></div>
+        <div class="form-group"><label for="product-description">Description</label><textarea id="product-description" class="form-control" placeholder="Enter product description"></textarea></div>
+        <div class="form-group"><label for="product-category">Category</label><select id="product-category" class="form-control"><option value="">Select a Category</option><option value="PREMIUM_PANEL">PREMIUM PANEL</option><option value="BASIC_PANEL">BASIC PANEL</option><option value="UNSAFE_PANEL">UNSAFE PANEL</option><option value="BYPASS">BYPASS</option><option value="OTHERS">OTHERS</option></select></div>
+        <div class="form-group"><label for="product-validity">Product Validity</label><select id="product-validity" class="form-control"><option value="1_month">1 Month</option><option value="2_months">2 Months</option><option value="3_months">3 Months</option><option value="5_months">5 Months</option><option value="lifetime">Lifetime</option></select></div>
+        <button class="btn btn-primary" onclick="addProduct()" style="width: 100%; margin-top: 15px;"><i class="fas fa-plus"></i> Add Product</button>
+    </div>
+    <div class="form-container">
+        <h2><i class="fas fa-redo-alt"></i> Upload Renewal Package</h2>
+        <div class="form-group"><label for="renewal-days">Select Validity</label><select id="renewal-days" class="form-control"><option value="30">Basic Package - 30 Days</option><option value="60">Standard Package - 60 Days</option><option value="90">Pro Package - 90 Days</option><option value="180">Elite Package - 180 Days</option></select></div>
+        <div class="form-group"><label for="renewal-price">Price (৳)</label><input type="number" id="renewal-price" class="form-control" min="0" placeholder="Enter package price"/></div>
+        <button class="btn btn-primary" onclick="uploadRenewalPackage()" style="width: 100%; margin-top: 10px;"><i class="fas fa-upload"></i> Upload Package</button>
+    </div>
+    <div class="form-container">
+        <h2><i class="fas fa-images"></i> Uploaded Images</h2>
+        <div id="uploaded-images-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;"><p>Loading images...</p></div>
+    </div>
+    <div class="form-container" style="margin-top: 40px;">
+        <h2><i class="fas fa-boxes"></i> All Products</h2>
+        <table class="data-table"><thead><tr><th>Image</th><th>Title</th><th>Price</th><th>Category</th><th>Validity</th><th>Actions</th></tr></thead><tbody id="product-list"><tr><td colspan="6" style="text-align: center;">Loading products...</td></tr></tbody></table>
+    </div>
+</div>
+
+<!-- Panel Link Updater Tab -->
+<div class="tab-content" id="panel-link-updater">
+    <div class="header"><h1>Panel Link Updater</h1></div>
+    <div class="stats-container" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+        <div class="tool-card" onclick="openPanelLinkModal('Basic panel')"><h3>Basic Panel</h3><p>Click to edit link</p></div>
+        <div class="tool-card" onclick="openPanelLinkModal('Bypass')"><h3>Bypass</h3><p>Click to edit link</p></div>
+        <div class="tool-card" onclick="openPanelLinkModal('Mobile')"><h3>Mobile Panel</h3><p>Click to edit link</p></div>
+        <div class="tool-card" onclick="openPanelLinkModal('Premium panel')"><h3>Premium Panel</h3><p>Click to edit link</p></div>
+        <div class="tool-card" onclick="openPanelLinkModal('Unsafe panel')"><h3>Unsafe Panel</h3><p>Click to edit link</p></div>
+    </div>
+</div>
+
+
+</div> <!-- End of main-content -->
+</div> <!-- End of admin-panel -->
+
+<!-- Edit User Modal -->
+<div class="modal" id="editUserModal">
+    <div class="modal-content">
+        <div class="modal-header"><h3 id="modalTitle">Edit User</h3><span class="close" onclick="closeModal()">×</span></div>
+        <div class="modal-body">
+            <div class="form-group"><label>User ID (Read-only):</label><input class="form-control" id="edit-user-id-display" type="text" readonly/></div>
+            <div class="form-group"><label>Balance:</label><input class="form-control" id="edit-balance" type="number"/></div>
+            <div class="form-group"><label>Password (leave blank to keep current):</label><input class="form-control" id="edit-password" type="text" placeholder="Leave blank to keep current"/></div>
+            <div class="form-group"><label>Machine ID (HWID):</label><div style="display: flex; gap: 10px;"><input class="form-control" id="edit-machine" style="flex: 1;" type="text"/><button class="btn btn-warning" onclick="resetHWID()" style="white-space: nowrap;"><i class="fas fa-sync-alt"></i> Reset</button></div></div>
+            <div class="form-group"><label>Expiry Date:</label><input class="form-control" id="edit-expiry" type="datetime-local"/></div>
+            <div class="form-group"><label>Batch Status:</label><select class="form-control" id="edit-batch-status"><option value="PREMIUM USER">PREMIUM USER</option><option value="BASIC USER">BASIC USER</option><option value="UNSAFE USER">UNSAFE USER</option><option value="BYPASS USER">BYPASS USER</option><option value="MOBILE USER">MOBILE USER</option><option value="GOLDEN ACCESS">GOLDEN ACCESS</option><option value="NORMAL PLAYER">NORMAL PLAYER</option><option value="">N/A or Clear</option></select></div>
+            <div class="form-group" style="display: flex; align-items: center;"><input type="checkbox" id="edit-is-blocked" style="margin-right: 10px;"><label for="edit-is-blocked" style="margin-bottom: 0;">Blocked</label></div>
+            
+            <!-- New Lifetime Checkboxes -->
+            <div class="form-group" style="display: flex; align-items: center;"><input type="checkbox" id="edit-basic-aimbot-lifetime" style="margin-right: 10px;"><label for="edit-basic-aimbot-lifetime" style="margin-bottom: 0;">Basic Aimbot Lifetime</label></div>
+            <div class="form-group" style="display: flex; align-items: center;"><input type="checkbox" id="edit-basic-sniper-lifetime" style="margin-right: 10px;"><label for="edit-basic-sniper-lifetime" style="margin-bottom: 0;">Basic Sniper Lifetime</label></div>
+            <div class="form-group" style="display: flex; align-items: center;"><input type="checkbox" id="edit-premium-lifetime" style="margin-right: 10px;"><label for="edit-premium-lifetime" style="margin-bottom: 0;">Premium Lifetime</label></div>
+            <div class="form-group" style="display: flex; align-items: center;"><input type="checkbox" id="edit-unsafe-lifetime" style="margin-right: 10px;"><label for="edit-unsafe-lifetime" style="margin-bottom: 0;">Unsafe Lifetime</label></div>
+
+            <hr style="margin: 20px 0;">
+            <h4>Bonus & Account Info</h4>
+            <div class="form-group"><label>Total Added For Bonus:</label><input class="form-control" id="edit-total-added-for-bonus" type="number"/></div>
+            <div class="form-group"><label>Accumulated Bonus (System Managed):</label><input class="form-control" id="edit-accumulated-bonus" type="number" readonly/></div>
+            <div class="form-group"><label>Recent Bonus Amount (System Managed):</label><input class="form-control" id="edit-recent-bonus-amount" type="number" readonly/></div>
+            <div class="form-group"><label>Last Bonus Tier Reached (Threshold Value):</label><input class="form-control" id="edit-last-bonus-tier-reached" type="number"/></div>
+             <div class="form-group">
+                <label>Failed Redeem Attempts:</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input class="form-control" id="edit-failed-redeem-attempts" type="number" readonly style="flex-grow: 1;"/>
+                    <button class="btn btn-warning btn-sm" onclick="resetFailedRedeemAttempts()" title="Reset to 0" style="padding: 8px 12px;"><i class="fas fa-undo"></i> Reset</button>
+                </div>
+            </div>
+            <div class="form-group" style="display: flex; align-items: center;"><input type="checkbox" id="edit-reset-free-used" style="margin-right: 10px;"><label for="edit-reset-free-used" style="margin-bottom: 0;">Reset Free Used</label></div>
+
+            <hr style="margin: 20px 0;">
+            <h4>Timestamps (Read-only)</h4>
+            <div class="form-group"><label>Created At:</label><input class="form-control" id="edit-created-at" type="text" readonly/></div>
+            <div class="form-group"><label>Join Date:</label><input class="form-control" id="edit-join-date" type="text" readonly/></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-danger" onclick="deleteCurrentUser()">Delete User</button><button class="btn btn-warning" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveUserChanges()">Save Changes</button></div>
+    </div>
+</div>
+<!-- User Created Modal -->
+<div class="modal" id="userCreatedModal"><div class="modal-content"><div class="modal-header"><h3>User Created</h3><span class="close" onclick="closeUserModal()">×</span></div><div class="modal-body"><p><strong>User ID:</strong> <span id="created-user-id"></span></p></div><div class="modal-footer"><button class="btn btn-primary" onclick="closeUserModal()">OK</button></div></div></div>
+<!-- Tool Popup Modal -->
+<div class="modal" id="toolPopupModal"><div class="modal-content"><div class="modal-header"><h3 id="tool-popup-title">Edit Tool</h3><span class="close" onclick="closeToolPopup()">×</span></div><div class="modal-body"><label for="tool-link-input" style="display: block; margin-bottom: 10px; font-weight: 500;">Paste Link</label><input id="tool-link-input" placeholder="https://example.com" class="form-control" type="text"/></div><div class="modal-footer"><button class="btn btn-warning" onclick="closeToolPopup()">Cancel</button><button class="btn btn-primary" onclick="saveToolLink()">Save Link</button></div></div></div>
+<!-- Edit Product Modal -->
+<div class="modal" id="editProductModal">
+    <div class="modal-content">
+        <div class="modal-header"><h3 id="editProductModalTitle">Edit Product</h3><span class="close" onclick="closeEditProductModal()">×</span></div>
+        <div class="modal-body">
+            <div class="form-group"><label>Image URL:</label><input class="form-control" id="edit-product-image-url" type="text"/></div>
+            <div class="form-group"><label>Title:</label><input class="form-control" id="edit-product-title" type="text"/></div>
+            <div class="form-group"><label>Price (৳):</label><input class="form-control" id="edit-product-price" type="number"/></div>
+            <div class="form-group"><label>Description:</label><textarea class="form-control" id="edit-product-description"></textarea></div>
+            <div class="form-group"><label for="edit-product-category">Category</label><select id="edit-product-category" class="form-control"><option value="PREMIUM_PANEL">PREMIUM PANEL</option><option value="BASIC_PANEL">BASIC PANEL</option><option value="UNSAFE_PANEL">UNSAFE PANEL</option><option value="BYPASS">BYPASS</option><option value="OTHERS">OTHERS</option></select></div>
+            <div class="form-group"><label for="edit-product-validity">Product Validity</label><select id="edit-product-validity" class="form-control"><option value="1_month">1 Month</option><option value="2_months">2 Months</option><option value="3_months">3 Months</option><option value="5_months">5 Months</option><option value="lifetime">Lifetime</option></select></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-danger" onclick="deleteProductConfirm()">Delete Product</button><button class="btn btn-warning" onclick="closeEditProductModal()">Cancel</button><button class="btn btn-primary" onclick="saveProductChanges()">Save Changes</button></div>
+    </div>
+</div>
+<!-- Panel Link Edit Modal -->
+<div class="modal" id="panelLinkModal">
+    <div class="modal-content">
+        <div class="modal-header"><h3 id="panel-link-modal-title">Edit Panel Link</h3><span class="close" onclick="closePanelLinkModal()">×</span></div>
+        <div class="modal-body">
+            <label for="panel-link-input" style="display: block; margin-bottom: 10px; font-weight: 500;">Panel Download Link</label>
+            <input id="panel-link-input" placeholder="https://example.com/panel.apk" class="form-control" type="url"/>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-warning" onclick="closePanelLinkModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveSinglePanelLink()">Save Link</button>
         </div>
     </div>
+</div>
 
-    <script>
+<script>
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyAueM2O16GbLJX4TmfK7g8IZfFJRMdh1WE",
-            databaseURL: "https://ng-mods-x2-default-rtdb.firebaseio.com",
-            projectId: "ng-mods-x2",
-            storageBucket: "ng-mods-x2.appspot.com"
+            apiKey: "AIzaSyAueM2O16GbLJX4TmfK7g8IZfFJRMdh1WE", // Replace
+            databaseURL: "https://ng-mods-x2-default-rtdb.firebaseio.com", // Replace
+            projectId: "ng-mods-x2", // Replace
+            storageBucket: "ng-mods-x2.appspot.com" // Replace
         };
-
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        const storage = firebase.storage(); 
 
-        // Reference to users node
         const usersRef = database.ref('users');
+        const transactionsRef = database.ref('transactions');
+        const activityRef = database.ref('activity');
+        const maintenanceRef = database.ref('maintenance');
+        const maintenanceHistoryRef = database.ref('maintenanceHistory');
+        const blockedHwidsRef = database.ref('blockedHwids');
+        const notificationsRef = database.ref('notifications');
+        const adminSentNotificationsRef = database.ref('admin_sent_notifications'); 
+        const redeemCodesRef = database.ref('redeemCodes'); 
+        const storeProductsRef = database.ref('storeProducts'); 
+        const storageRef = storage.ref(); 
+        const storeRenewalsRef = database.ref('storeRenewals');
+        const panelUpdateUrlRef = database.ref('Panel update url');
 
-        // Display all users with their points
-        function displayAllUsers() {
-            usersRef.on('value', (snapshot) => {
-                const users = snapshot.val();
-                const tableBody = document.getElementById('usersTableBody');
-                tableBody.innerHTML = '';
+        const bonusTiers = [ { threshold: 100,  bonus: 20 }, { threshold: 500,  bonus: 100 }, { threshold: 1000, bonus: 250 }, { threshold: 3000, bonus: 500 }, { threshold: 5000, bonus: 1000 } ].sort((a, b) => a.threshold - b.threshold);
 
-                if (!users) {
-                    tableBody.innerHTML = '<tr><td colspan="3">No users found</td></tr>';
+        let currentEditingUserId = null;
+        let currentEditingProductId = null; 
+        let currentToolName = '';
+        let currentEditingPanelType = null;
+
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString();
+
+        document.querySelectorAll('.menu-item[data-tab]').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                const tabId = this.dataset.tab;
+                const tabElement = document.getElementById(tabId);
+                if (tabElement) {
+                    tabElement.classList.add('active');
+                    loadTabData(tabId);
+                } else {
+                    console.error("Tab content not found for ID:", tabId);
+                }
+            });
+        });
+
+        function loadTabData(tabId) {
+            switch(tabId) {
+                case 'dashboard': loadDashboardStats(); loadRecentActivity(); break;
+                case 'user-list': loadAllUsers(); break;
+                case 'block-users': loadBlockUsers(); break;
+                case 'notifications': loadAdminNotificationHistory(); break;
+                case 'pending-transactions': loadPendingTransactions(); break;
+                case 'maintenance': loadMaintenanceUIStatus(); break;
+                case 'redeem-codes': loadRedeemCodes(); toggleCodeTypeInputs(); break;
+                case 'manage-store': loadStoreProducts(); listUploadedImages(); break;
+                case 'panel-link-updater': /* No specific load needed for static cards */ break; 
+            }
+        }
+
+        function createParticles() { 
+            const particlesContainer = document.getElementById('particles'); if (!particlesContainer) return; particlesContainer.innerHTML = ''; 
+            const particleCount = window.innerWidth < 768 ? 20 : 50;
+            for (let i = 0; i < particleCount; i++) { const particle = document.createElement('div'); particle.classList.add('particle'); const size = Math.random() * 4 + 2; particle.style.width = `${size}px`; particle.style.height = `${size}px`; particle.style.left = `${Math.random() * 100}%`; particle.style.top = `${Math.random() * 100}%`; const duration = Math.random() * 20 + 10; particle.style.animationDuration = `${duration}s`; particle.style.animationDelay = `${Math.random() * 5}s`; particlesContainer.appendChild(particle); }
+        }
+
+        function clearOldActivity() {
+            if (!confirm("Are you sure you want to delete activity logs older than 5 hours? This cannot be undone.")) { return; }
+            const fiveHoursAgo = Date.now() - (5 * 60 * 60 * 1000);
+            activityRef.orderByChild('timestamp').endAt(fiveHoursAgo).once('value', snapshot => {
+                const updates = {}; let count = 0;
+                snapshot.forEach(childSnapshot => { updates[childSnapshot.key] = null; count++; });
+                if (count > 0) {
+                    activityRef.update(updates).then(() => { alert(`${count} old activity logs deleted successfully.`); logActivity('Admin', `Cleared ${count} old activity logs`); }).catch(error => { alert("Error deleting old activity: " + error.message); console.error(error); });
+                } else { alert("No activity logs older than 5 hours found to delete."); }
+            }).catch(error => { alert("Error fetching old activity: " + error.message); console.error(error); });
+        }
+        
+        function openPanelLinkModal(panelType) {
+            currentEditingPanelType = panelType;
+            document.getElementById('panel-link-modal-title').textContent = `Edit Link for: ${panelType}`;
+            const linkInput = document.getElementById('panel-link-input');
+            linkInput.value = ''; // Clear previous value
+
+            panelUpdateUrlRef.child(panelType).once('value').then(snapshot => {
+                linkInput.value = snapshot.val() || '';
+                document.getElementById('panelLinkModal').classList.add('show');
+            }).catch(error => {
+                console.error("Error fetching panel link for", panelType, ":", error);
+                alert(`Could not load link for ${panelType}: ${error.message}`);
+                // Still show modal but with empty input
+                document.getElementById('panelLinkModal').classList.add('show');
+            });
+        }
+
+        function closePanelLinkModal() {
+            document.getElementById('panelLinkModal').classList.remove('show');
+            currentEditingPanelType = null;
+        }
+
+        function saveSinglePanelLink() {
+            const link = document.getElementById('panel-link-input').value.trim();
+            if (!currentEditingPanelType) {
+                alert('Error: No panel type selected for update.');
+                return;
+            }
+
+            try {
+                if (link && new URL(link).protocol !== "http:" && new URL(link).protocol !== "https:") {
+                     // Allow empty string to clear link
+                }
+            } catch (_) {
+                if (link) { 
+                    alert("Please enter a valid URL (e.g., http://example.com or https://example.com) or leave blank to clear.");
+                    return;
+                }
+            }
+            
+            panelUpdateUrlRef.child(currentEditingPanelType).set(link || null) 
+                .then(() => {
+                    alert(`Link for '${currentEditingPanelType}' updated successfully!`);
+                    logActivity('Admin', `Updated panel link for ${currentEditingPanelType}`);
+                    closePanelLinkModal();
+                })
+                .catch(error => {
+                    console.error("Error saving panel link for", currentEditingPanelType, ":", error);
+                    alert(`Failed to save link for ${currentEditingPanelType}: ${error.message}`);
+                });
+        }
+
+
+        function addProduct() {
+            const imgUrl = document.getElementById('product-image-url').value.trim(); const title = document.getElementById('product-title').value.trim(); const price = parseFloat(document.getElementById('product-price').value) || 0; const desc = document.getElementById('product-description').value.trim(); const cat = document.getElementById('product-category').value; const validity = document.getElementById('product-validity').value; 
+            if (!imgUrl || !title || isNaN(price) || !desc || !cat || !validity) { alert('Please fill all fields, including validity.'); return; }
+            const newRef = storeProductsRef.push(); const prodId = newRef.key;
+            const data = { imageUrl: imgUrl, title: title, price: price, description: desc, category: cat, productValidity: validity, createdAt: Date.now() };
+            newRef.set(data).then(() => { alert('Product added successfully!'); logActivity('Admin', `Added product: ${title} (ID:${prodId})`); ['product-image-url', 'product-title', 'product-description', 'product-category'].forEach(id=>document.getElementById(id).value=''); document.getElementById('product-price').value = '0'; document.getElementById('product-validity').value = '1_month'; document.getElementById('uploaded-image-preview').style.display = 'none'; document.getElementById('image-upload-input').value = ''; }).catch(err => alert('Add product error: ' + err.message));
+        }
+
+        function loadStoreProducts() {
+            storeProductsRef.on('value', snapshot => { const prods = snapshot.val() || {}; const tbody = document.getElementById('product-list'); tbody.innerHTML = '';
+                const arr = Object.entries(prods).map(([id, d]) => ({ id, ...d })).sort((a, b) => b.createdAt - a.createdAt);
+                if (arr.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No products found.</td></tr>'; return; }
+                arr.forEach(p => { const tr = document.createElement('tr'); let validityText = 'N/A';
+                    if (p.productValidity) { if (p.productValidity === 'lifetime') { validityText = 'Lifetime'; }  else { validityText = p.productValidity.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()); } }
+                    tr.innerHTML = `<td><img src="${p.imageUrl}" alt="${p.title}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;"></td><td>${p.title}</td><td>৳${p.price}</td><td>${p.category}</td><td>${validityText}</td>
+                        <td><div class="action-buttons" style="flex-wrap:wrap;"><button class="btn btn-primary btn-sm" onclick="openEditProductModal('${p.id}',${JSON.stringify(p).replace(/"/g, '&quot;')})"><i class="fas fa-edit"></i> Edit</button><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}','${p.title}')"><i class="fas fa-trash"></i> Delete</button></div></td>`;
+                    tbody.appendChild(tr); }); });
+        }
+        
+        function openEditProductModal(id, data) {
+            currentEditingProductId = id; data = typeof data === 'string' ? JSON.parse(data.replace(/&quot;/g, '"')) : data;
+            document.getElementById('editProductModalTitle').textContent = `Edit Product: ${data.title}`; document.getElementById('edit-product-image-url').value = data.imageUrl || ''; document.getElementById('edit-product-title').value = data.title || ''; document.getElementById('edit-product-price').value = data.price || 0; document.getElementById('edit-product-description').value = data.description || ''; document.getElementById('edit-product-category').value = data.category || ''; document.getElementById('edit-product-validity').value = data.productValidity || '1_month'; document.getElementById('editProductModal').classList.add('show');
+        }
+
+        function saveProductChanges() {
+            if (!currentEditingProductId) return; const imgUrl = document.getElementById('edit-product-image-url').value.trim(); const title = document.getElementById('edit-product-title').value.trim(); const price = parseFloat(document.getElementById('edit-product-price').value) || 0; const desc = document.getElementById('edit-product-description').value.trim(); const cat = document.getElementById('edit-product-category').value; const validity = document.getElementById('edit-product-validity').value;
+            if (!imgUrl || !title || isNaN(price) || !desc || !cat || !validity) { alert('Please fill all fields, including validity.'); return; }
+            const updates = { imageUrl: imgUrl, title: title, price: price, description: desc, category: cat, productValidity: validity, updatedAt: Date.now() };
+            storeProductsRef.child(currentEditingProductId).update(updates).then(() => { alert('Product updated successfully!'); logActivity('Admin', `Updated product: ${title} (ID:${currentEditingProductId})`); closeEditProductModal(); }).catch(err => alert('Update error: ' + err.message));
+        }
+
+        function clearAdminNotificationHistory() {
+            if (confirm("Are you sure you want to delete all sent notification history? This cannot be undone.")) { adminSentNotificationsRef.remove().then(() => { alert("Admin notification history cleared successfully."); logActivity('Admin', 'Cleared all admin notification history'); }).catch(error => { alert("Error clearing notification history: " + error.message); console.error(error); }); }
+        }
+
+        function uploadRenewalPackage() { const daysSelect = document.getElementById('renewal-days'); const days = daysSelect.value; const rawPrice = document.getElementById('renewal-price').value.trim(); if (!rawPrice) { alert("Please enter a package price."); return; } const price = parseInt(rawPrice.replace(/[^\d]/g, '')); if (isNaN(price) || price <= 0) { alert("Please enter a valid positive price."); return; } const selectedOptionText = daysSelect.options[daysSelect.selectedIndex].text; const title = selectedOptionText.includes(" - ") ? selectedOptionText.split(" - ")[0] : selectedOptionText; const packageData = { title: title, days: parseInt(days), price: price, createdAt: Date.now() }; const newKey = storeRenewalsRef.push().key; storeRenewalsRef.child(newKey).set(packageData, error => { if (error) { alert("Failed to upload renewal package: " + error.message); console.error(error); } else { alert("Renewal package uploaded successfully!"); document.getElementById('renewal-price').value = ""; logActivity('Admin', `Uploaded renewal: ${title} (${days}d) ৳${price}`); } }); }
+        function copyUploadedImageUrl() { const input = document.getElementById("uploaded-image-url"); if (input.value) { input.select(); input.setSelectionRange(0, 99999); navigator.clipboard.writeText(input.value).then(() => alert("Image URL copied!")).catch(err => { console.error("Failed to copy URL:", err); alert("Failed to copy URL."); }); } else { alert("No URL to copy yet."); } }
+        function showImagePreview(url) { const img = document.getElementById("uploaded-image-preview"); img.src = url; img.style.display = "block"; }
+        function listUploadedImages() { const listRef = storageRef.child('images/products/'); const container = document.getElementById('uploaded-images-list'); container.innerHTML = '<p>Loading images...</p>'; listRef.listAll().then(res => { container.innerHTML = ''; if (res.items.length === 0) { container.innerHTML = '<p>No images in `images/products/`.</p>'; return; } res.items.forEach(itemRef => { itemRef.getDownloadURL().then(url => { const div = document.createElement('div'); div.style.cssText = "border:1px solid var(--border-color);padding:10px;border-radius:8px;text-align:center;"; const img = document.createElement('img'); img.src = url; img.alt = itemRef.name; img.style.cssText = "width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;"; const copyBtn = document.createElement('button'); copyBtn.className = 'btn btn-accent btn-sm'; copyBtn.style.width = '100%'; copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy URL'; copyBtn.onclick = () => navigator.clipboard.writeText(url).then(() => alert('URL copied!')).catch(()=>alert('Failed to copy.')); const delBtn = document.createElement('button'); delBtn.className = 'btn btn-danger btn-sm'; delBtn.style.cssText = 'width:100%;margin-top:5px;'; delBtn.innerHTML = '<i class="fas fa-trash"></i> Delete'; delBtn.onclick = () => { if (confirm(`Delete image: ${itemRef.name}?`)) { itemRef.delete().then(() => { alert('Image deleted!'); listUploadedImages(); logActivity('Admin', `Deleted image: ${itemRef.name}`); }).catch(err => { alert('Delete failed: '+err.message); console.error(err); }); } }; div.appendChild(img); div.appendChild(copyBtn); div.appendChild(delBtn); container.appendChild(div); }).catch(err => console.error("URL fetch error:", itemRef.name, err)); }); }).catch(err => { container.innerHTML = '<p>Error loading images.</p>'; console.error(err); }); }
+        
+        function loadDashboardStats() { 
+            usersRef.once('value', snapshot => { const users = snapshot.val() || {}; const total = Object.keys(users).length; let active = 0, blocked = 0; Object.values(users).forEach(u => { if (u.isBlocked) blocked++; else if (!u.expiryDate || new Date(u.expiryDate) >= new Date()) active++; }); document.getElementById('total-users').textContent = total; document.getElementById('active-users').textContent = active; document.getElementById('blocked-users').textContent = blocked; });
+            transactionsRef.once('value', snapshot => { const allTrans = snapshot.val() || {}; let pendingCount = 0; let deposits3Days = 0; let deposits7Days = 0; let deposits30Days = 0; const now = Date.now(); const threeDaysAgo = now - (3 * 24 * 60 * 60 * 1000); const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000); const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
+                for (const uid in allTrans) { for (const tid in allTrans[uid]) { const t = allTrans[uid][tid]; if (t.status === "pending_verification") pendingCount++; if (t.status === "completed" && t.amount && t.date) { const txDate = new Date(t.date).getTime(); if (txDate >= thirtyDaysAgo) { deposits30Days += t.amount; if (txDate >= sevenDaysAgo) { deposits7Days += t.amount; if (txDate >= threeDaysAgo) { deposits3Days += t.amount; } } } } } }
+                document.getElementById('pending-transactions-count').textContent = pendingCount; document.getElementById('deposits-3-days').textContent = `৳${deposits3Days}`; document.getElementById('deposits-7-days').textContent = `৳${deposits7Days}`; document.getElementById('deposits-30-days').textContent = `৳${deposits30Days}`;
+            });
+        }
+        function loadRecentActivity() { activityRef.limitToLast(10).on('value', snapshot => { const activities = snapshot.val() || {}; const tbody = document.getElementById('recent-activity'); tbody.innerHTML = ''; const arr = Object.entries(activities).map(([k,v])=>({id:k,...v})).sort((a,b)=>b.timestamp-a.timestamp); if (arr.length === 0) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No recent activity.</td></tr>'; return; } arr.forEach(act => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${act.userId||'System'}</td><td>${act.action}</td><td>${new Date(act.timestamp).toLocaleString()}</td>`; tbody.appendChild(tr); }); }); }
+        function loadAllUsers() { usersRef.on('value', snapshot => { const users = snapshot.val() || {}; const tbody = document.getElementById('all-users'); tbody.innerHTML = ''; const arr = Object.entries(users).map(([id,u])=>({userId:id,...u})); if (arr.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No users.</td></tr>'; return; } arr.forEach(u => { const exp = u.expiryDate && new Date(u.expiryDate) < new Date(); const generalStat = u.isBlocked ? 'blocked' : exp ? 'expired' : 'active'; const batchStat = u.status || 'N/A'; const tr = document.createElement('tr'); tr.innerHTML = `<td class="clickable-cell" onclick="openEditModal('${u.userId}', ${JSON.stringify(u).replace(/"/g, '&quot;')})">${u.userId}</td><td>${u.balance||0}</td><td>${u.machineId||''}</td><td>${u.joinDate?new Date(u.joinDate).toLocaleDateString():'N/A'}</td><td>${u.expiryDate?new Date(u.expiryDate).toLocaleString():'N/A'}</td><td><span class="status-badge status-${generalStat}">${generalStat.charAt(0).toUpperCase()+generalStat.slice(1)}</span></td><td>${batchStat}</td><td><div class="action-buttons"><button class="btn btn-primary btn-sm" onclick="openEditModal('${u.userId}', ${JSON.stringify(u).replace(/"/g, '&quot;')})"><i class="fas fa-edit"></i> Edit</button></div></td>`; tbody.appendChild(tr); }); }); }
+        function loadBlockUsers() { usersRef.on('value', snapshot => { const users = snapshot.val() || {}; const tbody = document.getElementById('block-users-list'); tbody.innerHTML = ''; const arr = Object.entries(users).map(([id,u])=>({userId:id,...u})); if (arr.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No users.</td></tr>'; return; } arr.forEach(u => { const exp = u.expiryDate && new Date(u.expiryDate) < new Date(); const stat = u.isBlocked ? 'blocked' : exp ? 'expired' : 'active'; const tr = document.createElement('tr'); tr.innerHTML = `<td>${u.userId}</td><td>${u.machineId||''}</td><td><span class="status-badge status-${stat}">${stat.charAt(0).toUpperCase()+stat.slice(1)}</span></td><td>${u.expiryDate?new Date(u.expiryDate).toLocaleString():'N/A'}</td><td>${u.lastActive?new Date(u.lastActive).toLocaleString():'Never'}</td><td><div class="action-buttons">${stat==='blocked' ? `<button class="btn btn-success btn-sm" onclick="toggleUserBlock('${u.userId}',false,'${u.machineId||''}')"><i class="fas fa-check"></i> Unblock</button>` : `<button class="btn btn-danger btn-sm" onclick="toggleUserBlock('${u.userId}',true,'${u.machineId||''}')"><i class="fas fa-ban"></i> Block</button>`}</div></td>`; tbody.appendChild(tr); }); }); }
+        function toggleUserBlock(userId, block, hwid) { const action = block ? 'block' : 'unblock'; if (confirm(`Sure to ${action} user ${userId}${hwid && hwid !== '' && block ? ` and HWID ${hwid}` : ''}?`)) { usersRef.child(userId).update({isBlocked: block}).then(() => { let hwidPromise = Promise.resolve(); if (hwid && hwid !== '') { hwidPromise = block ? blockedHwidsRef.child(hwid).set(true) : blockedHwidsRef.child(hwid).remove(); } hwidPromise.then(() => { alert(`User ${userId}${hwid && hwid !== '' ? ` (HWID ${hwid} status also updated if applicable)`:''} ${action}ed.`); logActivity('Admin', `${action}ed user ${userId}${hwid && hwid !== '' ? ` and HWID ${hwid}`:''}`); }).catch(err => alert(`User ${action}ed, but HWID operation failed: ${err.message}`)).finally(() => { loadDashboardStats(); }); }).catch(err => alert(`Error: ${err.message}`)); } }
+        function loadPendingTransactions() { transactionsRef.on('value', snapshot => { const allTrans = snapshot.val() || {}; const tbody = document.getElementById('pending-transactions-list'); tbody.innerHTML = ''; let totalPendingAmount = 0; let hasPendingTrans = false; for (const uid in allTrans) { for (const tid_firebase in allTrans[uid]) { const t = allTrans[uid][tid_firebase]; if (t.status === "pending_verification") { hasPendingTrans = true; totalPendingAmount += t.amount || 0; const tr = document.createElement('tr'); const paymentMethodDisplay = t.paymentMethod ? `(${t.paymentMethod.charAt(0).toUpperCase() + t.paymentMethod.slice(1)})` : ''; tr.innerHTML = `<td>${uid}</td><td>৳${t.amount||0} ${paymentMethodDisplay}</td><td>${t.paymentTransactionId || 'N/A'}</td><td>${t.date ? new Date(t.date).toLocaleString() : 'N/A'}</td><td><span class="status-badge status-pending_verification">Pending</span></td><td><div class="action-buttons" style="flex-wrap:wrap;"><button class="btn btn-success btn-sm" onclick="approveTransaction('${uid}','${tid_firebase}',${t.amount})"><i class="fas fa-check"></i> Approve</button><button class="btn btn-accent btn-sm" onclick="approveTransactionWithBonus('${uid}','${tid_firebase}',${t.amount})"><i class="fas fa-star"></i> Approve+Bonus</button><button class="btn btn-danger btn-sm" onclick="rejectTransaction('${uid}','${tid_firebase}')"><i class="fas fa-times"></i> Reject</button></div></td>`; tbody.appendChild(tr); } } } document.getElementById('total-pending-amount').textContent = `৳${totalPendingAmount}`; if (!hasPendingTrans) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No pending transactions.</td></tr>'; } }); }
+        function approveTransaction(userId, transactionFirebaseKey, amount) { if (confirm(`Approve ৳${amount} for ${userId}?`)) { usersRef.child(userId).once('value', snapshot => { const user = snapshot.val() || {}; const newBalance = (user.balance || 0) + amount; usersRef.child(userId).update({ balance: newBalance }).then(() => { transactionsRef.child(`${userId}/${transactionFirebaseKey}`).update({ status: "completed" }).then(() => { alert("Transaction approved."); logActivity('Admin', `Approved ৳${amount} for ${userId}`); loadDashboardStats(); }).catch(err => alert("Tx status update error: " + err.message)); }).catch(err => alert("Balance update error: " + err.message)); }); } }
+        function approveTransactionWithBonus(userId, transactionFirebaseKey, amount) { if (confirm(`Approve ৳${amount} for user ${userId} AND apply bonus?`)) { usersRef.child(userId).once('value', snapshot => { const user = snapshot.val() || {}; let currentBalance = user.balance || 0; let currentTotalAddedForBonus = user.totalAddedForBonus || 0; let currentAccumulatedBonus = user.accumulatedBonus || 0; const originalLastBonusTierReached = user.lastBonusTierReached || 0; let currentRecentBonusAmount = user.recentBonusAmount || 0; const newBalanceAfterDeposit = currentBalance + amount; const newTotalAddedForBonusAfterThisTx = currentTotalAddedForBonus + amount; let totalBonusAwardedInThisTransaction = 0; let highestSingleBonusAmountInThisTx = 0; let highestTierThresholdReachedInThisTx = originalLastBonusTierReached; let bonusesAppliedDetails = []; let totalBonusAtOldTier = 0; const oldTierData = bonusTiers.find(t => t.threshold === originalLastBonusTierReached); if (oldTierData) { totalBonusAtOldTier = oldTierData.bonus; } let totalBonusAtNewTier = 0; for (const tier of bonusTiers) { if (newTotalAddedForBonusAfterThisTx >= tier.threshold) { totalBonusAtNewTier = tier.bonus; highestTierThresholdReachedInThisTx = tier.threshold; } else { break; } } totalBonusAwardedInThisTransaction = totalBonusAtNewTier - totalBonusAtOldTier; if (totalBonusAwardedInThisTransaction < 0) { totalBonusAwardedInThisTransaction = 0; } if (totalBonusAwardedInThisTransaction > 0) { bonusesAppliedDetails.push(`Net bonus of ৳${totalBonusAwardedInThisTransaction} for reaching new milestone(s) up to ৳${highestTierThresholdReachedInThisTx}.`); highestSingleBonusAmountInThisTx = totalBonusAwardedInThisTransaction; } const finalUserBalance = newBalanceAfterDeposit; const finalAccumulatedBonusTotal = currentAccumulatedBonus + totalBonusAwardedInThisTransaction; const finalRecentBonusAmountForUser = totalBonusAwardedInThisTransaction > 0 ? highestSingleBonusAmountInThisTx : currentRecentBonusAmount; const updates = { balance: finalUserBalance, totalAddedForBonus: newTotalAddedForBonusAfterThisTx, accumulatedBonus: finalAccumulatedBonusTotal, recentBonusAmount: finalRecentBonusAmountForUser, lastBonusTierReached: highestTierThresholdReachedInThisTx }; usersRef.child(userId).update(updates).then(() => { transactionsRef.child(`${userId}/${transactionFirebaseKey}`).update({ status: "completed" }).then(() => { let alertMsg = `Tx approved. ৳${amount} to balance. `; alertMsg += totalBonusAwardedInThisTransaction > 0 ? `${bonusesAppliedDetails.join(', ')} ` : "No new bonus tiers. "; alertMsg += `Bal:৳${updates.balance}. RecentBonus:৳${updates.recentBonusAmount}. AccBonus:৳${updates.accumulatedBonus}. TotalAdded:৳${updates.totalAddedForBonus}. LastTier:৳${updates.lastBonusTierReached}.`; alert(alertMsg); logActivity('Admin', `Approved ৳${amount} for ${userId}. NewBonus:৳${totalBonusAwardedInThisTransaction}.`); loadDashboardStats(); }).catch(error => { alert("Tx status update error: " + error.message); }); }).catch(error => { alert("User bonus update error: " + error.message); }); }); } }
+        function rejectTransaction(userId, transactionFirebaseKey) { if (confirm("Reject this transaction?")) { transactionsRef.child(`${userId}/${transactionFirebaseKey}`).update({ status: "rejected" }).then(() => { alert("Transaction rejected"); logActivity('Admin', `Rejected tx ${transactionFirebaseKey} for ${userId}`); loadDashboardStats(); }).catch(err => alert("Error rejecting tx: " + err.message)); } }
+        function sendNotification() { const recipient = document.getElementById('notification-recipient').value; const userId = recipient === 'specific' ? document.getElementById('specific-user-id').value.trim() : null; const title = document.getElementById('notification-title').value.trim(); const message = document.getElementById('notification-message').value.trim(); if (!message) { alert("Please enter a message"); return; } if (recipient === 'specific' && !userId) { alert("Please enter a user ID"); return; } const notificationDataForUser = { title: title || '', message: message, timestamp: Date.now(), sender: 'Admin', read: false }; const notificationDataForAdminLog = { title: title || '', message: message, timestamp: Date.now(), recipient: userId || 'all', sender: 'Admin' }; if (userId) { notificationsRef.child(userId).push(notificationDataForUser).then(() => { adminSentNotificationsRef.push(notificationDataForAdminLog); alert(`Notification sent to user ${userId}`); logActivity('Admin', `Sent notification to ${userId}`); document.getElementById('notification-message').value = ''; document.getElementById('notification-title').value = ''; }).catch(error => alert("Error sending notification: " + error.message)); } else { usersRef.once('value', snapshot => { const users = snapshot.val() || {}; const updates = {}; if (Object.keys(users).length === 0) { alert("No users to send notification to."); return; } for (const uid in users) { updates[`notifications/${uid}/${notificationsRef.child(uid).push().key}`] = notificationDataForUser; } database.ref().update(updates).then(() => { adminSentNotificationsRef.push(notificationDataForAdminLog); alert("Notification sent to all users"); logActivity('Admin', "Sent notification to all users"); document.getElementById('notification-message').value = ''; document.getElementById('notification-title').value = ''; }).catch(error => alert("Error sending notification: " + error.message)); }); } }
+        function loadAdminNotificationHistory() { adminSentNotificationsRef.orderByChild('timestamp').on('value', snapshot => { const sentNotifications = {}; snapshot.forEach(child => { sentNotifications[child.key] = child.val(); }); const historyList = document.getElementById('notification-history-list'); historyList.innerHTML = ''; if (Object.keys(sentNotifications).length === 0) { historyList.innerHTML = '<div class="notification-item" style="text-align:center;">No notifications sent yet</div>'; return; } let notifications = []; for (const notifId in sentNotifications) { notifications.push({ id: notifId, ...sentNotifications[notifId] }); } notifications.sort((a, b) => b.timestamp - a.timestamp); notifications.forEach(notification => { const div = document.createElement('div'); div.className = 'notification-item'; div.innerHTML = `<div class="notification-meta"><span>Sent to: <span class="notification-recipient">${notification.recipient === 'all' ? 'All Users' : notification.recipient}</span></span><span>${new Date(notification.timestamp).toLocaleString()}</span></div>${notification.title ? `<h4>${notification.title}</h4>` : ''}<div class="notification-message">${notification.message.replace(/\n/g, '<br>')}</div>`; historyList.appendChild(div); }); }); }
+        function formatForDatetimeLocal(isoString) { if (!isoString) return ''; try { const d = new Date(isoString); if (isNaN(d.getTime())) return ''; return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; } catch (e) { console.error("Date format error:", isoString, e); return '';} }
+        
+        function openEditModal(userId, userData) { 
+            currentEditingUserId = userId; 
+            userData = typeof userData === 'string' ? JSON.parse(userData.replace(/&quot;/g, '"')) : userData; 
+            document.getElementById('modalTitle').textContent = `Edit User: ${userId}`; 
+            document.getElementById('edit-user-id-display').value = userId; 
+            document.getElementById('edit-balance').value = userData.balance || 0; 
+            document.getElementById('edit-password').value = ''; 
+            document.getElementById('edit-machine').value = userData.machineId || ''; 
+            document.getElementById('edit-expiry').value = formatForDatetimeLocal(userData.expiryDate); 
+            document.getElementById('edit-batch-status').value = userData.status || ''; 
+            document.getElementById('edit-is-blocked').checked = userData.isBlocked || false;
+
+            // Populate new lifetime flags
+            document.getElementById('edit-basic-aimbot-lifetime').checked = userData['Basic aimbot lifetime'] || false;
+            document.getElementById('edit-basic-sniper-lifetime').checked = userData['Basic sniper lifetime'] || false;
+            document.getElementById('edit-premium-lifetime').checked = userData['Premium lifetime'] || false;
+            document.getElementById('edit-unsafe-lifetime').checked = userData['Unsafe lifetime'] || false;
+
+            document.getElementById('edit-total-added-for-bonus').value = userData.totalAddedForBonus || 0; 
+            document.getElementById('edit-accumulated-bonus').value = userData.accumulatedBonus || 0; 
+            document.getElementById('edit-recent-bonus-amount').value = userData.recentBonusAmount || 0; 
+            document.getElementById('edit-last-bonus-tier-reached').value = userData.lastBonusTierReached !== undefined ? userData.lastBonusTierReached : (userData.lastBonusMilestoneAchieved === -1 ? -1 : (userData.lastBonusMilestoneAchieved || 0) ); 
+            
+            // Populate failedRedeemAttempts
+            document.getElementById('edit-failed-redeem-attempts').value = userData.failedRedeemAttempts || 0;
+            
+            document.getElementById('edit-reset-free-used').checked = userData.resetFreeUsed || false; 
+            document.getElementById('edit-created-at').value = userData.createdAt ? new Date(userData.createdAt).toLocaleString() : 'N/A'; 
+            document.getElementById('edit-join-date').value = userData.joinDate ? new Date(userData.joinDate).toLocaleString() : 'N/A'; 
+            document.getElementById('editUserModal').classList.add('show'); 
+        }
+
+        function closeModal() { document.getElementById('editUserModal').classList.remove('show'); currentEditingUserId = null; }
+        function resetHWID() { if (!currentEditingUserId) return; if (confirm("Reset user's HWID? This will clear the HWID field in the modal.")) { document.getElementById('edit-machine').value = ''; alert("HWID field cleared. Save changes to persist."); } }
+        
+        function resetFailedRedeemAttempts() {
+            if (!currentEditingUserId) return;
+            if (confirm("Are you sure you want to reset Failed Redeem Attempts to 0 for this user?")) {
+                usersRef.child(currentEditingUserId).update({ failedRedeemAttempts: 0 })
+                    .then(() => {
+                        alert("Failed Redeem Attempts reset to 0.");
+                        document.getElementById('edit-failed-redeem-attempts').value = 0; // Update modal display
+                        logActivity('Admin', `Reset failedRedeemAttempts for user ${currentEditingUserId}`);
+                    })
+                    .catch(err => {
+                        alert("Error resetting failed attempts: " + err.message);
+                    });
+            }
+        }
+        
+        function saveUserChanges() {
+            if (!currentEditingUserId) return;
+
+            usersRef.child(currentEditingUserId).once('value', snapshot => {
+                const currentData = snapshot.val(); 
+                if (!currentData) {
+                    alert("Error: User data not found. Cannot save changes.");
+                    console.error("User data not found for ID:", currentEditingUserId);
                     return;
                 }
 
-                for (const userId in users) {
-                    const userPoints = users[userId];
+                const updates = {}; 
+
+                updates.balance = parseInt(document.getElementById('edit-balance').value) || 0;
+                updates.machineId = document.getElementById('edit-machine').value.trim();
+                updates.status = document.getElementById('edit-batch-status').value;
+                updates.isBlocked = document.getElementById('edit-is-blocked').checked;
+
+                // Add new lifetime flags
+                updates['Basic aimbot lifetime'] = document.getElementById('edit-basic-aimbot-lifetime').checked;
+                updates['Basic sniper lifetime'] = document.getElementById('edit-basic-sniper-lifetime').checked;
+                updates['Premium lifetime'] = document.getElementById('edit-premium-lifetime').checked;
+                updates['Unsafe lifetime'] = document.getElementById('edit-unsafe-lifetime').checked;
+                
+                updates.totalAddedForBonus = parseInt(document.getElementById('edit-total-added-for-bonus').value) || 0;
+                
+                const lastBonusTierReachedInput = document.getElementById('edit-last-bonus-tier-reached').value;
+                const parsedLastBonusTier = parseInt(lastBonusTierReachedInput);
+                updates.lastBonusTierReached = isNaN(parsedLastBonusTier) 
+                    ? (currentData.lastBonusTierReached || 0) 
+                    : parsedLastBonusTier;
                     
-                    const row = document.createElement('tr');
-                    row.id = `row-${userId}`;
-                    row.innerHTML = `
-                        <td class="user-id">${userId}</td>
-                        <td class="point-value" id="points-${userId}">${userPoints}</td>
-                        <td>
-                            <div class="actions">
-                                <button class="edit-btn" onclick="enableEditPoints('${userId}')">Edit</button>
-                            </div>
-                        </td>
-                    `;
-                    
-                    tableBody.appendChild(row);
+                updates.resetFreeUsed = document.getElementById('edit-reset-free-used').checked;
+
+                const expiryStr = document.getElementById('edit-expiry').value;
+                if (expiryStr) {
+                    const d = new Date(expiryStr);
+                    if (!isNaN(d.getTime())) {
+                        updates.expiryDate = d.toISOString();
+                    } else { 
+                        if (currentData.hasOwnProperty('expiryDate')) {
+                            updates.expiryDate = currentData.expiryDate;
+                        }
+                    }
+                } else { 
+                    updates.expiryDate = null; 
                 }
-            }, (error) => {
-                showStatus(`Error loading users: ${error.message}`, 'error');
+
+                const newPassword = document.getElementById('edit-password').value.trim();
+                if (newPassword) {
+                    updates.password = newPassword; 
+                } else { 
+                    if (currentData.hasOwnProperty('password')) {
+                        updates.password = currentData.password;
+                    }
+                }
+                // Preserve system-managed/read-only fields by ensuring they are copied from currentData
+                // if not explicitly part of 'updates' or handled by their own mechanisms (like failedRedeemAttempts reset button)
+                
+                // These are readonly inputs in the modal, so their values should come from currentData
+                updates.accumulatedBonus = currentData.accumulatedBonus || 0;
+                updates.recentBonusAmount = currentData.recentBonusAmount || 0;
+                
+                // failedRedeemAttempts is readonly input, updated by its own button, value is preserved from currentData
+                if (currentData.hasOwnProperty('failedRedeemAttempts')) {
+                     updates.failedRedeemAttempts = currentData.failedRedeemAttempts;
+                } else {
+                     updates.failedRedeemAttempts = 0; // Default if not present
+                }
+                // After reset, currentData (re-fetched) would have 0.
+                // So this ensures failedRedeemAttempts from latest currentData snapshot is maintained during save.
+
+
+                if (currentData.hasOwnProperty('joinDate')) {
+                    updates.joinDate = currentData.joinDate;
+                }
+                if (currentData.hasOwnProperty('createdAt')) {
+                    updates.createdAt = currentData.createdAt;
+                }
+                
+                usersRef.child(currentEditingUserId).update(updates).then(() => {
+                    alert("User updated successfully.");
+                    logActivity('Admin', `Updated user ${currentEditingUserId} with changes: ${JSON.stringify(updates)}`);
+                    closeModal();
+                }).catch(err => {
+                    alert("Update error: " + err.message);
+                    console.error("Firebase update error for user:", currentEditingUserId, "Error:", err, "Attempted updates:", updates);
+                });
             });
         }
 
-        // Enable edit mode for points
-        function enableEditPoints(userId) {
-            const pointsCell = document.getElementById(`points-${userId}`);
-            const currentPoints = pointsCell.textContent;
-            
-            pointsCell.innerHTML = `<input type="number" class="edit-input" id="edit-${userId}" value="${currentPoints}">`;
-            
-            const actionsCell = document.querySelector(`#row-${userId} td:last-child`);
-            actionsCell.innerHTML = `
-                <div class="actions">
-                    <button class="save-btn" onclick="saveUserPoints('${userId}')">Save</button>
-                    <button class="cancel-btn" onclick="cancelEditPoints('${userId}')">Cancel</button>
-                </div>
-            `;
+        function deleteCurrentUser() { if (!currentEditingUserId) return; if (confirm(`Are you sure you want to delete user '${currentEditingUserId}'? This action cannot be undone.`)) { usersRef.child(currentEditingUserId).remove().then(() => { alert(`User '${currentEditingUserId}' deleted successfully.`); logActivity('Admin', `Deleted user ${currentEditingUserId}`); closeModal(); loadDashboardStats(); }).catch(err => alert('Delete error: ' + err.message)); } }
+        
+        function createUser() { 
+            const userId = document.getElementById('new-user-id').value.trim(); 
+            const balance = parseInt(document.getElementById('new-user-balance').value) || 0; 
+            const expiryDateInput = document.getElementById('new-user-expiry').value; 
+            if (!userId) { alert("User ID is required."); return; } 
+            usersRef.child(userId).once('value').then(snapshot => { 
+                if (snapshot.exists()) { 
+                    alert(`User ID '${userId}' already exists.`); 
+                } else { 
+                    const nowISO = new Date().toISOString(); 
+                    const userData = { 
+                        balance: balance, 
+                        machineId: "", 
+                        isBlocked: false, 
+                        joinDate: nowISO, 
+                        expiryDate: expiryDateInput ? new Date(expiryDateInput).toISOString() : null, 
+                        password: '', 
+                        status: 'NORMAL PLAYER', 
+                        totalAddedForBonus: 0, 
+                        accumulatedBonus: 0, 
+                        recentBonusAmount: 0, 
+                        lastBonusTierReached: 0, 
+                        resetFreeUsed: false, 
+                        createdAt: nowISO,
+                        // New fields with defaults
+                        'Basic aimbot lifetime': false,
+                        'Basic sniper lifetime': false,
+                        'Premium lifetime': false,
+                        'Unsafe lifetime': false,
+                        failedRedeemAttempts: 0
+                    }; 
+                    usersRef.child(userId).set(userData).then(() => { 
+                        showUserCreatedModal(userId); 
+                        logActivity('Admin', `Created new user: ${userId}`); 
+                        document.getElementById('new-user-id').value = ''; 
+                        document.getElementById('new-user-balance').value = ''; 
+                        document.getElementById('new-user-expiry').value = ''; 
+                        loadDashboardStats(); 
+                    }).catch(err => alert("Create user error: " + err.message)); 
+                } 
+            }).catch(err => alert("Error checking user existence: " + err.message)); 
         }
 
-        // Cancel edit mode
-        function cancelEditPoints(userId) {
-            displayAllUsers(); // Reload original data
-        }
-
-        // Save points to Firebase
-        function saveUserPoints(userId) {
-            const newPoints = document.getElementById(`edit-${userId}`).value;
-            
-            usersRef.child(userId).set(parseInt(newPoints))
-                .then(() => {
-                    showStatus('Points updated successfully!', 'success');
-                    displayAllUsers();
-                })
-                .catch(error => {
-                    showStatus(`Error updating points: ${error.message}`, 'error');
-                });
-        }
-
-        // Show add user form
-        function showAddUserForm() {
-            document.getElementById('addUserForm').style.display = 'block';
-        }
-
-        // Hide add user form
-        function hideAddUserForm() {
-            document.getElementById('addUserForm').style.display = 'none';
-            document.getElementById('newUserId').value = '';
-            document.getElementById('newUserPoints').value = '';
-        }
-
-        // Add new user
-        function addNewUser() {
-            const userId = document.getElementById('newUserId').value.trim();
-            const points = document.getElementById('newUserPoints').value;
-            
-            if (!userId) {
-                showStatus('Please enter a User ID', 'error');
-                return;
-            }
-            
-            if (!points || isNaN(points)) {
-                showStatus('Please enter valid points', 'error');
-                return;
-            }
-            
-            usersRef.child(userId).set(parseInt(points))
-                .then(() => {
-                    showStatus('User added successfully!', 'success');
-                    hideAddUserForm();
-                    displayAllUsers();
-                })
-                .catch(error => {
-                    showStatus(`Error adding user: ${error.message}`, 'error');
-                });
-        }
-
-        // Deduct 5 coins from all users
-        function deductDailyCoins() {
-            if (!confirm("Are you sure you want to deduct 5 coins from ALL users?")) {
-                return;
-            }
-            
-            usersRef.once('value', (snapshot) => {
-                const users = snapshot.val();
-                const updates = {};
-                
-                for (const userId in users) {
-                    const currentPoints = users[userId] || 0;
-                    updates[userId] = Math.max(0, currentPoints - 5); // Don't go below 0
-                }
-                
-                usersRef.update(updates)
-                    .then(() => {
-                        showStatus('Deducted 5 coins from all users!', 'success');
-                        displayAllUsers();
-                    })
-                    .catch(error => {
-                        showStatus(`Error deducting coins: ${error.message}`, 'error');
-                    });
-            });
-        }
-
-        // Show status message
-        function showStatus(message, type) {
-            const statusDiv = document.getElementById('status');
-            statusDiv.textContent = message;
-            statusDiv.className = `status ${type}`;
-            setTimeout(() => {
-                statusDiv.textContent = '';
-                statusDiv.className = 'status';
-            }, 3000);
-        }
-
-        // Initialize
-        displayAllUsers();
-    </script>
+        function showUserCreatedModal(userId) { document.getElementById('created-user-id').textContent = userId; document.getElementById('userCreatedModal').classList.add('show'); }
+        function closeUserModal() { document.getElementById('userCreatedModal').classList.remove('show'); }
+        function exportUsers() { usersRef.once('value', snapshot => { const users = snapshot.val() || {}; let csv = 'User ID,Balance,Total Added For Bonus,Recent Bonus Amt,Accumulated Bonus,Last Bonus Tier Reached,HWID,General Status,Batch Status,Is Blocked,Reset Free Used,Failed Redeem Attempts,Basic Aimbot Lifetime,Basic Sniper Lifetime,Premium Lifetime,Unsafe Lifetime,Join Date,Expiry Date,Created At\n'; Object.entries(users).forEach(([uid, u]) => { const exp = u.expiryDate && new Date(u.expiryDate) < new Date(); const generalStat = u.isBlocked ? 'Blocked' : exp ? 'Expired' : 'Active'; const join = u.joinDate ? new Date(u.joinDate).toLocaleString() : 'N/A'; const expiry = u.expiryDate ? new Date(u.expiryDate).toLocaleString() : 'N/A'; const createdAt = u.createdAt ? new Date(u.createdAt).toLocaleString() : 'N/A'; csv += `"${uid}",${u.balance||0},${u.totalAddedForBonus||0},${u.recentBonusAmount||0},${u.accumulatedBonus||0},${u.lastBonusTierReached||0},"${u.machineId||''}","${generalStat}","${u.status||'N/A'}",${u.isBlocked ? 'Yes' : 'No'},${u.resetFreeUsed ? 'Yes' : 'No'},${u.failedRedeemAttempts||0},${u['Basic aimbot lifetime'] ? 'Yes' : 'No'},${u['Basic sniper lifetime'] ? 'Yes' : 'No'},${u['Premium lifetime'] ? 'Yes' : 'No'},${u['Unsafe lifetime'] ? 'Yes' : 'No'},"${join}","${expiry}","${createdAt}"\n`; }); const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.setAttribute('href',url); a.setAttribute('download','users_export.csv'); document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }); }
+        function logActivity(userId, action) { activityRef.push({ userId: userId, action: action, timestamp: Date.now() }); }
+        function logout() { if (confirm("Are you sure you want to logout?")) { document.getElementById("admin-panel").style.display = "none"; document.getElementById("login-screen").style.display = "flex"; document.getElementById("login-username").value = ""; document.getElementById("login-password").value = ""; document.getElementById("remember-me").checked = false; localStorage.removeItem('adminUsername'); localStorage.removeItem('adminPassword'); document.getElementById('particles').style.display = 'none'; } }
+        function performLogin() { const u = document.getElementById("login-username").value.trim(); const p = document.getElementById("login-password").value.trim(); const rem = document.getElementById("remember-me").checked; const errEl = document.getElementById("login-error"); if (u === "1" && p === "x") { if (rem) { localStorage.setItem('adminUsername',u); localStorage.setItem('adminPassword',p); } else { localStorage.removeItem('adminUsername'); localStorage.removeItem('adminPassword'); } document.getElementById("login-screen").style.display = "none"; document.getElementById("admin-panel").style.display = "block"; document.getElementById('particles').style.display = 'block'; if (!document.getElementById('particles').hasChildNodes()) { createParticles(); } loadTabData(document.querySelector('.menu-item.active').dataset.tab); errEl.style.display = "none"; } else { errEl.style.display = "block"; errEl.textContent = 'Invalid credentials!'; localStorage.removeItem('adminUsername'); localStorage.removeItem('adminPassword'); } }
+        document.addEventListener('DOMContentLoaded', () => { document.getElementById('current-date').textContent = new Date().toLocaleDateString(); const storedU = localStorage.getItem('adminUsername'); const storedP = localStorage.getItem('adminPassword'); if (storedU && storedP) { document.getElementById('login-username').value = storedU; document.getElementById('login-password').value = storedP; document.getElementById('remember-me').checked = true; performLogin(); } else { document.getElementById("login-screen").style.display = "flex"; document.getElementById("admin-panel").style.display = "none"; } document.getElementById('user-search').addEventListener('input', function() { const term = this.value.toLowerCase(); document.querySelectorAll('#block-users-list tr').forEach(row => { if (row.cells.length > 0 && row.cells[0].textContent.toLowerCase() !== "loading users...") { const uid = row.cells[0].textContent.toLowerCase(); const hwid = row.cells[1].textContent.toLowerCase(); row.style.display = (uid.includes(term) || hwid.includes(term)) ? '' : 'none'; } }); }); document.getElementById('notification-recipient').addEventListener('change', function() { document.getElementById('specific-user-group').style.display = this.value==='specific'?'block':'none'; }); document.querySelectorAll('input[name="code-type"]').forEach(r=>r.addEventListener('change',toggleCodeTypeInputs)); toggleCodeTypeInputs(); });
+        function loadMaintenanceUIStatus() { maintenanceRef.once('value').then(snapshot => { const data = snapshot.val() || {}; const panelOn = data.panel === true; const serverOn = data.server === true; document.getElementById('panel-maintenance-toggle').textContent = panelOn ? 'Disable Panel Maintenance' : 'Enable Panel Maintenance'; document.getElementById('server-maintenance-toggle').textContent = serverOn ? 'Disable Server Maintenance' : 'Enable Server Maintenance'; document.getElementById('panel-maintenance-toggle').className = `btn ${panelOn ? 'btn-danger' : 'btn-success'}`; document.getElementById('server-maintenance-toggle').className = `btn ${serverOn ? 'btn-danger' : 'btn-success'}`; document.getElementById('panel-maintenance-message').value = data.panel_message || ''; document.getElementById('server-maintenance-message').value = data.server_message || ''; }); }
+        function toggleMaintenanceStatus(type) { maintenanceRef.child(type).once('value').then(snapshot => { const current = snapshot.val() === true; maintenanceRef.child(type).set(!current).then(() => { const msg = `${type.charAt(0).toUpperCase()+type.slice(1)} maintenance ${!current?'enabled':'disabled'}.`; maintenanceHistoryRef.push({type:type,status:!current?'enabled':'disabled',message:msg,timestamp:Date.now(),by:'Admin'}); alert(msg); loadMaintenanceUIStatus(); logActivity('Admin', msg); }); }); }
+        function saveMaintenanceMessage(type) { const msg = document.getElementById(`${type}-maintenance-message`).value.trim(); maintenanceRef.child(`${type}_message`).set(msg).then(() => { alert(`${type.charAt(0).toUpperCase()+type.slice(1)} message saved`); logActivity('Admin', `Updated ${type} maintenance message`); }); }
+        
+        function openToolPopup(toolName) { currentToolName = toolName; document.getElementById('tool-popup-title').textContent = `Edit: ${toolName}`; firebase.database().ref('Tools/' + toolName).once('value').then(snapshot => { document.getElementById('tool-link-input').value = snapshot.val() || ''; }); document.getElementById('toolPopupModal').classList.add('show'); }
+        function closeToolPopup() { document.getElementById('toolPopupModal').classList.remove('show'); currentToolName = ''; }
+        function saveToolLink() { const link = document.getElementById('tool-link-input').value.trim(); if (!currentToolName) { alert('No tool selected.'); return; } firebase.database().ref('Tools/' + currentToolName).set(link).then(() => { alert(`${currentToolName} link updated`); logActivity('Admin', `Updated tool link for ${currentToolName}`); closeToolPopup(); }).catch(err => { alert('Error updating link: ' + err.message); }); }
+        function toggleCodeTypeInputs() { const codeType = document.querySelector('input[name="code-type"]:checked').value; const balanceOptions = document.getElementById('balance-options'); const timeOptions = document.getElementById('time-options'); balanceOptions.style.display = codeType === 'balance' ? 'block' : 'none'; timeOptions.style.display = codeType === 'time' ? 'block' : 'none'; if (codeType === 'balance') { document.getElementById('redeem-code-days').value = '0'; document.getElementById('redeem-code-hours').value = '0'; document.getElementById('redeem-code-minutes').value = '0'; } else { document.getElementById('redeem-code-balance').value = '0'; } }
+        async function generateRedeemCode() { const type = document.querySelector('input[name="code-type"]:checked').value; const code = "killerx-" + Math.random().toString(36).substring(2, 10).toUpperCase(); const balance = parseInt(document.getElementById("redeem-code-balance").value) || 0; const days = parseInt(document.getElementById("redeem-code-days").value) || 0; const hours = parseInt(document.getElementById("redeem-code-hours").value) || 0; const minutes = parseInt(document.getElementById("redeem-code-minutes").value) || 0; const claimLimit = parseInt(document.getElementById("redeem-code-limit").value) || 1; const validityDays = parseInt(document.getElementById("redeem-code-validity-days").value) || 0; let totalSeconds = (days * 86400) + (hours * 3600) + (minutes * 60); let validUntil = validityDays > 0 ? Date.now() + (validityDays * 86400000) : 0; let data = { createdAt: Date.now(), claimLimit: claimLimit, claimedCount: 0, validUntil: validUntil, status: 'active' }; if (type === "balance") data.amount = balance; else data.timeAddedMillis = totalSeconds * 1000; firebase.database().ref("redeemCodes/" + code).set(data).then(() => { document.getElementById("display-generated-code").textContent = code; document.getElementById("generated-code-display").style.display = "block"; logActivity('Admin', `Generated redeem code: ${code} (Type: ${type})`); }); }
+        function copyGeneratedCode() { const codeText = document.getElementById('display-generated-code').textContent; navigator.clipboard.writeText(codeText).then(() => alert('Code copied!')).catch(err => { console.error('Copy failed: ', err); alert('Failed to copy.'); }); }
+        function loadRedeemCodes() { redeemCodesRef.on('value', snapshot => { const codes = snapshot.val() || {}; const tbody = document.getElementById('redeem-code-list'); tbody.innerHTML = ''; const arr = Object.entries(codes).map(([c,d])=>({code:c,...d})).sort((a,b)=>b.createdAt-a.createdAt); if(arr.length === 0){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;">No codes.</td></tr>'; return;} arr.forEach(item => { let statusCls='', statusTxt=item.status; const now=Date.now(); const isExpiredByDate = item.validUntil !== 0 && now > item.validUntil; const isExhaustedByClaims = item.claimedCount >= item.claimLimit; if(item.status==='disabled'){statusCls='status-blocked';statusTxt='Disabled';} else if(isExpiredByDate){statusCls='status-expired';statusTxt='Expired';} else if(isExhaustedByClaims){statusCls='status-blocked';statusTxt='Exhausted';} else{statusCls='status-active';statusTxt='Active';} let timeStr='N/A'; if(item.timeAddedMillis > 0){ const totS=item.timeAddedMillis/1000, d=Math.floor(totS/(24*3600)),h=Math.floor((totS%(24*3600))/3600),m=Math.floor((totS%3600)/60); let p=[]; if(d>0)p.push(`${d}D`);if(h>0)p.push(`${h}H`);if(m>0)p.push(`${m}M`); timeStr=p.join(' ')||'<1M'; } else if (typeof item.amount === 'number' && item.amount > 0) { timeStr = 'N/A'; } else if (typeof item.amount === 'number' && item.amount === 0 && typeof item.timeAddedMillis !== 'number') { timeStr = '0'; } const tr=document.createElement('tr'); tr.innerHTML=`<td>${item.code}</td><td>${item.amount||0}</td><td>${timeStr}</td><td>${item.claimLimit}</td><td>${item.claimedCount}</td><td><span class="status-badge ${statusCls}">${statusTxt}</span></td><td>${item.validUntil ? new Date(item.validUntil).toLocaleString() : 'Never'}</td><td>${new Date(item.createdAt).toLocaleString()}</td><td><div class="action-buttons" style="flex-wrap:wrap;">${item.status==='active'&&!isExpiredByDate&&!isExhaustedByClaims?`<button class="btn btn-warning btn-sm" onclick="toggleRedeemCodeStatus('${item.code}','disabled')"><i class="fas fa-ban"></i> Disable</button>`:''}${item.status==='disabled'||isExpiredByDate||isExhaustedByClaims?`<button class="btn btn-success btn-sm" onclick="toggleRedeemCodeStatus('${item.code}','active')"><i class="fas fa-check"></i> Enable</button>`:''}<button class="btn btn-danger btn-sm" onclick="deleteRedeemCode('${item.code}')"><i class="fas fa-trash"></i> Delete</button></div></td>`; tbody.appendChild(tr); }); }); }
+        function toggleRedeemCodeStatus(code, status) { const act = status==='active'?'enable':'disable'; if(confirm(`Sure to ${act} code '${code}'?`)){ redeemCodesRef.child(code).update({status:status}).then(()=> {alert(`Code '${code}' ${act}d!`); logActivity('Admin',`${act.charAt(0).toUpperCase()+act.slice(1)}d code: ${code}`);}).catch(err=>alert('Update error: '+err.message)); } }
+        function deleteRedeemCode(code) { if(confirm(`Delete code '${code}'?`)){ redeemCodesRef.child(code).remove().then(()=> {alert(`Code '${code}' deleted!`); logActivity('Admin',`Deleted code: ${code}`);}).catch(err=>alert('Delete error: '+err.message)); } }
+        async function uploadImage() { const fileInput = document.getElementById('image-upload-input'); const urlInput = document.getElementById('uploaded-image-url'); const copyBtn = document.getElementById('copy-image-url-btn'); const progBar = document.getElementById('upload-progress-bar'); const statMsg = document.getElementById('upload-status-message'); const preview = document.getElementById('uploaded-image-preview'); const file = fileInput.files[0]; if (!file) { alert('Select an image.'); return; } urlInput.value = ''; copyBtn.disabled = true; progBar.style.width = '0%'; progBar.style.backgroundColor='var(--primary-color)'; progBar.style.display='block'; statMsg.textContent='Uploading...'; statMsg.style.color='var(--secondary-text)'; statMsg.style.display='block'; preview.style.display='none'; preview.src=''; const fileName = `products/${Date.now()}_${file.name}`; const imgRef = storageRef.child('images/' + fileName); const task = imgRef.put(file); task.on('state_changed', snap => { const prog = (snap.bytesTransferred / snap.totalBytes) * 100; progBar.style.width = prog + '%'; statMsg.textContent = `Upload ${Math.floor(prog)}%`; if(snap.state===firebase.storage.TaskState.PAUSED) statMsg.textContent='Paused'; }, err => { console.error(err); alert('Upload failed: '+err.message); statMsg.textContent=`Failed: ${err.code}`; statMsg.style.color='var(--danger-color)'; progBar.style.backgroundColor='var(--danger-color)'; }, () => { task.snapshot.ref.getDownloadURL().then(dlURL => { urlInput.value = dlURL; copyBtn.disabled = false; progBar.style.backgroundColor='var(--success-color)'; statMsg.textContent='Complete! URL ready.'; statMsg.style.color='var(--success-color)'; alert('Image uploaded! URL ready.'); logActivity('Admin', `Uploaded image: ${fileName}`); document.getElementById('product-image-url').value = dlURL; showImagePreview(dlURL); listUploadedImages(); }); }); }
+        function deleteProductConfirm() { if(!currentEditingProductId)return; const title=document.getElementById('edit-product-title').value||'this product'; if(confirm(`Delete '${title}'?`)) deleteProduct(currentEditingProductId,title); }
+        function deleteProduct(id,title) { if (confirm(`Are you sure you want to delete product '${title}'? This cannot be undone.`)) { storeProductsRef.child(id).remove().then(()=>{alert(`Product '${title}' deleted.`);logActivity('Admin',`Deleted: ${title} (ID:${id})`);if(currentEditingProductId===id)closeEditProductModal();}).catch(err=>alert('Delete error: '+err.message)); } }
+        function closeEditProductModal(){ document.getElementById('editProductModal').classList.remove('show');currentEditingProductId=null;}
+</script>
 </body>
 </html>
