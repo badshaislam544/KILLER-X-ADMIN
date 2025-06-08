@@ -271,7 +271,7 @@
         <li class="menu-item" data-tab="create-user"><i class="fas fa-user-plus"></i> Create User</li>
     </div>
     <div class="nav-row" style="margin-bottom: 0;">
-        <li class="menu-item" data-tab="redeem-codes"><i class="fas fa-gift"></i> Redeem Codes</li>
+        <li class="menu-item" data-tab="stocks-discount"><i class="fas fa-tags"></i> Stocks & Discount</li>
         <li class="menu-item" data-tab="tools"><i class="fas fa-wrench"></i> Tools</li>
         <li class="menu-item" data-tab="maintenance"><i class="fas fa-tools"></i> Maintenance</li>
         <li class="menu-item" data-tab="pending-transactions"><i class="fas fa-money-bill-wave"></i> Transactions</li>
@@ -349,7 +349,7 @@
 <div class="tab-content" id="pending-transactions">
     <div class="header"><h1>Pending Transactions</h1><div class="total">Total Pending: <span id="total-pending-amount">৳0</span></div></div>
     <table class="data-table">
-        <thead><tr><th>User ID</th><th>Amount (Method)</th><th>Payment Txn ID</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+        <thead><tr><th>User ID</th><th>Amount (Proof)</th><th>Proof/Txn ID</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody id="pending-transactions-list"><tr><td colspan="6" style="text-align: center;">No pending transactions found</td></tr></tbody>
     </table>
 </div>
@@ -394,22 +394,70 @@
     </div>
 </div>
 
-<!-- Redeem Codes Tab -->
-<div class="tab-content" id="redeem-codes">
-    <div class="header"><h1>Redeem Code Generator</h1></div>
+<!-- Stocks & Discount Tab -->
+<div class="tab-content" id="stocks-discount">
+    <div class="header"><h1>Stocks & Discount Management</h1></div>
+
     <div class="form-container">
-        <h2><i class="fas fa-gift"></i> Generate New Code</h2>
-        <div class="form-group"><label>Code Type:</label><div style="display: flex; gap: 15px;"><label for="code-type-balance" style="display: flex; align-items: center; gap: 5px; color: var(--text-color);"><input type="radio" id="code-type-balance" name="code-type" value="balance" checked> Balance Code</label><label for="code-type-time" style="display: flex; align-items: center; gap: 5px; color: var(--text-color);"><input type="radio" id="code-type-time" name="code-type" value="time"> Time Code</label></div></div>
-        <div id="balance-options"><div class="form-group"><label for="redeem-code-balance">Balance to Add</label><input id="redeem-code-balance" type="number" min="0" value="0" class="form-control" placeholder="Enter balance amount"/></div></div>
-        <div id="time-options" style="display: none;"><div class="form-group"><label>Time to Add (Days, Hours, Minutes)</label><div style="display: flex; gap: 10px;"><input id="redeem-code-days" type="number" min="0" value="0" class="form-control" placeholder="Days"/><input id="redeem-code-hours" type="number" min="0" value="0" class="form-control" placeholder="Hours"/><input id="redeem-code-minutes" type="number" min="0" value="0" class="form-control" placeholder="Minutes"/></div></div></div>
-        <div class="form-group"><label for="redeem-code-limit">Claim Limit</label><input id="redeem-code-limit" type="number" min="1" value="1" class="form-control" placeholder="How many times can this code be claimed?"/></div>
-        <div class="form-group"><label for="redeem-code-validity-days">Code Validity (Days)</label><input id="redeem-code-validity-days" type="number" min="0" value="0" class="form-control" placeholder="Code valid for X days (0 for never expires)"/></div>
-        <button class="btn btn-primary" onclick="generateRedeemCode()" style="width: 100%; margin-top: 15px;"><i class="fas fa-magic"></i> Generate Redeem Code</button>
-        <div style="margin-top: 20px; text-align: center; background: #e0f2f7; padding: 15px; border-radius: 8px; border: 1px dashed var(--primary-color); display: none;" id="generated-code-display"><p style="font-weight: 600; color: var(--primary-dark); margin-bottom: 10px;">Generated Code:</p><code style="font-size: 1.4rem; font-weight: 700; color: var(--accent-color); user-select: all;" id="display-generated-code"></code><button class="btn btn-accent" onclick="copyGeneratedCode()" style="margin-top: 10px; padding: 8px 15px; font-size: 0.9rem;"><i class="fas fa-copy"></i> Copy</button></div>
+        <h2><i class="fas fa-star"></i> Lifetime Product Discounts</h2>
+        <div class="form-group">
+            <label for="lifetime-discount-select">Select Lifetime Product</label>
+            <select id="lifetime-discount-select" class="form-control">
+                <option value="">-- Select a Lifetime Product --</option>
+            </select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div class="form-group"><label>Original Price</label><div id="lifetime-original-price" style="font-size: 1.2rem; font-weight: 600; color: var(--secondary-text);">৳0</div></div>
+            <div class="form-group"><label>Discounted Price</label><div id="lifetime-new-price" style="font-size: 1.2rem; font-weight: 700; color: var(--success-color);">৳0</div></div>
+        </div>
+        <div class="form-group">
+            <label for="lifetime-discount-percentage">Discount Percentage (%)</label>
+            <input id="lifetime-discount-percentage" type="number" min="0" max="100" class="form-control" placeholder="e.g., 15">
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-primary" onclick="applyDiscount('lifetime')" style="flex-grow: 1;"><i class="fas fa-check"></i> Apply Discount</button>
+            <button class="btn btn-danger" onclick="removeDiscount('lifetime')" style="flex-grow: 1;"><i class="fas fa-times"></i> Remove Discount</button>
+        </div>
     </div>
+
+    <div class="form-container">
+        <h2><i class="fas fa-clock"></i> Time-Based Product Discounts</h2>
+        <div class="form-group">
+            <label for="timed-discount-select">Select Time-Based Product</label>
+            <select id="timed-discount-select" class="form-control">
+                <option value="">-- Select a Time-Based Product --</option>
+            </select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div class="form-group"><label>Original Price</label><div id="timed-original-price" style="font-size: 1.2rem; font-weight: 600; color: var(--secondary-text);">৳0</div></div>
+            <div class="form-group"><label>Discounted Price</label><div id="timed-new-price" style="font-size: 1.2rem; font-weight: 700; color: var(--success-color);">৳0</div></div>
+        </div>
+        <div class="form-group">
+            <label for="timed-discount-percentage">Discount Percentage (%)</label>
+            <input id="timed-discount-percentage" type="number" min="0" max="100" class="form-control" placeholder="e.g., 10">
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-primary" onclick="applyDiscount('timed')" style="flex-grow: 1;"><i class="fas fa-check"></i> Apply Discount</button>
+            <button class="btn btn-danger" onclick="removeDiscount('timed')" style="flex-grow: 1;"><i class="fas fa-times"></i> Remove Discount</button>
+        </div>
+    </div>
+
     <div class="form-container" style="margin-top: 40px;">
-        <h2><i class="fas fa-list-ul"></i> Redeem Code History</h2>
-        <table class="data-table"><thead><tr><th>Code</th><th>Balance</th><th>Time Added</th><th>Claim Limit</th><th>Claimed</th><th>Status</th><th>Valid Until</th><th>Created</th><th>Actions</th></tr></thead><tbody id="redeem-code-list"><tr><td colspan="9" style="text-align: center;">Loading redeem codes...</td></tr></tbody></table>
+        <h2><i class="fas fa-boxes"></i> Product Status Overview</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Stock Status</th>
+                    <th>Discount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="product-status-list">
+                <tr><td colspan="5" style="text-align: center;">Loading product statuses...</td></tr>
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -453,11 +501,11 @@
 <div class="tab-content" id="panel-link-updater">
     <div class="header"><h1>Panel Link Updater</h1></div>
     <div class="stats-container" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
-        <div class="tool-card" onclick="openPanelLinkModal('Basic panel')"><h3>Basic Panel</h3><p>Click to edit link</p></div>
+        <div class="tool-card" onclick="openPanelLinkModal('BAimbot')"><h3>Basic Aimbot</h3><p>Click to edit link</p></div>
+        <div class="tool-card" onclick="openPanelLinkModal('BSniper')"><h3>Basic Sniper</h3><p>Click to edit link</p></div>
         <div class="tool-card" onclick="openPanelLinkModal('Bypass')"><h3>Bypass</h3><p>Click to edit link</p></div>
-        <div class="tool-card" onclick="openPanelLinkModal('Mobile')"><h3>Mobile Panel</h3><p>Click to edit link</p></div>
-        <div class="tool-card" onclick="openPanelLinkModal('Premium panel')"><h3>Premium Panel</h3><p>Click to edit link</p></div>
-        <div class="tool-card" onclick="openPanelLinkModal('Unsafe panel')"><h3>Unsafe Panel</h3><p>Click to edit link</p></div>
+        <div class="tool-card" onclick="openPanelLinkModal('Premium')"><h3>Premium Panel</h3><p>Click to edit link</p></div>
+        <div class="tool-card" onclick="openPanelLinkModal('Unsafe')"><h3>Unsafe Panel</h3><p>Click to edit link</p></div>
     </div>
 </div>
 
@@ -474,15 +522,52 @@
             <div class="form-group"><label>Balance:</label><input class="form-control" id="edit-balance" type="number"/></div>
             <div class="form-group"><label>Password (leave blank to keep current):</label><input class="form-control" id="edit-password" type="text" placeholder="Leave blank to keep current"/></div>
             <div class="form-group"><label>Machine ID (HWID):</label><div style="display: flex; gap: 10px;"><input class="form-control" id="edit-machine" style="flex: 1;" type="text"/><button class="btn btn-warning" onclick="resetHWID()" style="white-space: nowrap;"><i class="fas fa-sync-alt"></i> Reset</button></div></div>
-            <div class="form-group"><label>Expiry Date:</label><input class="form-control" id="edit-expiry" type="datetime-local"/></div>
+            <div class="form-group"><label>Main Expiry Date:</label><input class="form-control" id="edit-expiry" type="datetime-local"/></div>
             <div class="form-group"><label>Batch Status:</label><select class="form-control" id="edit-batch-status"><option value="PREMIUM USER">PREMIUM USER</option><option value="BASIC USER">BASIC USER</option><option value="UNSAFE USER">UNSAFE USER</option><option value="BYPASS USER">BYPASS USER</option><option value="MOBILE USER">MOBILE USER</option><option value="GOLDEN ACCESS">GOLDEN ACCESS</option><option value="NORMAL PLAYER">NORMAL PLAYER</option><option value="">N/A or Clear</option></select></div>
             <div class="form-group" style="display: flex; align-items: center;"><input type="checkbox" id="edit-is-blocked" style="margin-right: 10px;"><label for="edit-is-blocked" style="margin-bottom: 0;">Blocked</label></div>
-            
-            <!-- New Lifetime Checkboxes -->
-            <div class="form-group" style="display: flex; align-items: center;"><input type="checkbox" id="edit-basic-aimbot-lifetime" style="margin-right: 10px;"><label for="edit-basic-aimbot-lifetime" style="margin-bottom: 0;">Basic Aimbot Lifetime</label></div>
-            <div class="form-group" style="display: flex; align-items: center;"><input type="checkbox" id="edit-basic-sniper-lifetime" style="margin-right: 10px;"><label for="edit-basic-sniper-lifetime" style="margin-bottom: 0;">Basic Sniper Lifetime</label></div>
-            <div class="form-group" style="display: flex; align-items: center;"><input type="checkbox" id="edit-premium-lifetime" style="margin-right: 10px;"><label for="edit-premium-lifetime" style="margin-bottom: 0;">Premium Lifetime</label></div>
-            <div class="form-group" style="display: flex; align-items: center;"><input type="checkbox" id="edit-unsafe-lifetime" style="margin-right: 10px;"><label for="edit-unsafe-lifetime" style="margin-bottom: 0;">Unsafe Lifetime</label></div>
+
+            <hr style="margin: 20px 0;">
+            <h4>Product Subscriptions</h4>
+            <!-- Premium -->
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="margin-bottom: 5px;">Premium Subscription</label>
+                <div style="display: flex; align-items: center; gap: 15px; background: #fafafa; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+                    <div style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" id="edit-premium-lifetime" style="margin: 0;"><label for="edit-premium-lifetime" style="margin: 0; font-weight: normal; color: var(--text-color);">Lifetime</label></div>
+                    <input class="form-control" id="edit-premium-expiry" type="datetime-local" style="flex-grow: 1; padding: 8px;">
+                </div>
+            </div>
+            <!-- Unsafe -->
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="margin-bottom: 5px;">Unsafe Subscription</label>
+                <div style="display: flex; align-items: center; gap: 15px; background: #fafafa; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+                    <div style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" id="edit-unsafe-lifetime" style="margin: 0;"><label for="edit-unsafe-lifetime" style="margin: 0; font-weight: normal; color: var(--text-color);">Lifetime</label></div>
+                    <input class="form-control" id="edit-unsafe-expiry" type="datetime-local" style="flex-grow: 1; padding: 8px;">
+                </div>
+            </div>
+            <!-- Basic Aimbot -->
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="margin-bottom: 5px;">Basic Aimbot Subscription</label>
+                <div style="display: flex; align-items: center; gap: 15px; background: #fafafa; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+                    <div style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" id="edit-basic-aimbot-lifetime" style="margin: 0;"><label for="edit-basic-aimbot-lifetime" style="margin: 0; font-weight: normal; color: var(--text-color);">Lifetime</label></div>
+                    <input class="form-control" id="edit-basic-aimbot-expiry" type="datetime-local" style="flex-grow: 1; padding: 8px;">
+                </div>
+            </div>
+            <!-- Basic Sniper -->
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="margin-bottom: 5px;">Basic Sniper Subscription</label>
+                <div style="display: flex; align-items: center; gap: 15px; background: #fafafa; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+                    <div style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" id="edit-basic-sniper-lifetime" style="margin: 0;"><label for="edit-basic-sniper-lifetime" style="margin: 0; font-weight: normal; color: var(--text-color);">Lifetime</label></div>
+                    <input class="form-control" id="edit-basic-sniper-expiry" type="datetime-local" style="flex-grow: 1; padding: 8px;">
+                </div>
+            </div>
+            <!-- Bypass -->
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="margin-bottom: 5px;">Bypass Subscription</label>
+                <div style="display: flex; align-items: center; gap: 15px; background: #fafafa; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+                    <div style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" id="edit-bypass-lifetime" style="margin: 0;"><label for="edit-bypass-lifetime" style="margin: 0; font-weight: normal; color: var(--text-color);">Lifetime</label></div>
+                    <input class="form-control" id="edit-bypass-expiry" type="datetime-local" style="flex-grow: 1; padding: 8px;">
+                </div>
+            </div>
 
             <hr style="margin: 20px 0;">
             <h4>Bonus & Account Info</h4>
@@ -561,11 +646,11 @@
         const blockedHwidsRef = database.ref('blockedHwids');
         const notificationsRef = database.ref('notifications');
         const adminSentNotificationsRef = database.ref('admin_sent_notifications'); 
-        const redeemCodesRef = database.ref('redeemCodes'); 
         const storeProductsRef = database.ref('storeProducts'); 
         const storageRef = storage.ref(); 
         const storeRenewalsRef = database.ref('storeRenewals');
-        const panelUpdateUrlRef = database.ref('Panel update url');
+        const panelUpdateUrlRef = database.ref('USERPANEL');
+        const stocksDiscountRef = database.ref('StocksRdiscount');
 
         const bonusTiers = [ { threshold: 100,  bonus: 20 }, { threshold: 500,  bonus: 100 }, { threshold: 1000, bonus: 250 }, { threshold: 3000, bonus: 500 }, { threshold: 5000, bonus: 1000 } ].sort((a, b) => a.threshold - b.threshold);
 
@@ -600,7 +685,7 @@
                 case 'notifications': loadAdminNotificationHistory(); break;
                 case 'pending-transactions': loadPendingTransactions(); break;
                 case 'maintenance': loadMaintenanceUIStatus(); break;
-                case 'redeem-codes': loadRedeemCodes(); toggleCodeTypeInputs(); break;
+                case 'stocks-discount': loadStocksDiscountTab(); break;
                 case 'manage-store': loadStoreProducts(); listUploadedImages(); break;
                 case 'panel-link-updater': /* No specific load needed for static cards */ break; 
             }
@@ -680,9 +765,9 @@
         function addProduct() {
             const imgUrl = document.getElementById('product-image-url').value.trim(); const title = document.getElementById('product-title').value.trim(); const price = parseFloat(document.getElementById('product-price').value) || 0; const desc = document.getElementById('product-description').value.trim(); const cat = document.getElementById('product-category').value; const validity = document.getElementById('product-validity').value; 
             if (!imgUrl || !title || isNaN(price) || !desc || !cat || !validity) { alert('Please fill all fields, including validity.'); return; }
-            const newRef = storeProductsRef.push(); const prodId = newRef.key;
-            const data = { imageUrl: imgUrl, title: title, price: price, description: desc, category: cat, productValidity: validity, createdAt: Date.now() };
-            newRef.set(data).then(() => { alert('Product added successfully!'); logActivity('Admin', `Added product: ${title} (ID:${prodId})`); ['product-image-url', 'product-title', 'product-description', 'product-category'].forEach(id=>document.getElementById(id).value=''); document.getElementById('product-price').value = '0'; document.getElementById('product-validity').value = '1_month'; document.getElementById('uploaded-image-preview').style.display = 'none'; document.getElementById('image-upload-input').value = ''; }).catch(err => alert('Add product error: ' + err.message));
+            const newRef = storeProductsRef.push();
+            const data = { imageUrl: imgUrl, title: title, price: price, description: desc, category: cat, productValidity: validity, createdAt: Date.now()};
+            newRef.set(data).then(() => { alert('Product added successfully!'); logActivity('Admin', `Added product: ${title}`); ['product-image-url', 'product-title', 'product-description', 'product-category'].forEach(id=>document.getElementById(id).value=''); document.getElementById('product-price').value = '0'; document.getElementById('product-validity').value = '1_month'; document.getElementById('uploaded-image-preview').style.display = 'none'; document.getElementById('image-upload-input').value = ''; }).catch(err => alert('Add product error: ' + err.message));
         }
 
         function loadStoreProducts() {
@@ -728,44 +813,122 @@
         function loadAllUsers() { usersRef.on('value', snapshot => { const users = snapshot.val() || {}; const tbody = document.getElementById('all-users'); tbody.innerHTML = ''; const arr = Object.entries(users).map(([id,u])=>({userId:id,...u})); if (arr.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No users.</td></tr>'; return; } arr.forEach(u => { const exp = u.expiryDate && new Date(u.expiryDate) < new Date(); const generalStat = u.isBlocked ? 'blocked' : exp ? 'expired' : 'active'; const batchStat = u.status || 'N/A'; const tr = document.createElement('tr'); tr.innerHTML = `<td class="clickable-cell" onclick="openEditModal('${u.userId}', ${JSON.stringify(u).replace(/"/g, '&quot;')})">${u.userId}</td><td>${u.balance||0}</td><td>${u.machineId||''}</td><td>${u.joinDate?new Date(u.joinDate).toLocaleDateString():'N/A'}</td><td>${u.expiryDate?new Date(u.expiryDate).toLocaleString():'N/A'}</td><td><span class="status-badge status-${generalStat}">${generalStat.charAt(0).toUpperCase()+generalStat.slice(1)}</span></td><td>${batchStat}</td><td><div class="action-buttons"><button class="btn btn-primary btn-sm" onclick="openEditModal('${u.userId}', ${JSON.stringify(u).replace(/"/g, '&quot;')})"><i class="fas fa-edit"></i> Edit</button></div></td>`; tbody.appendChild(tr); }); }); }
         function loadBlockUsers() { usersRef.on('value', snapshot => { const users = snapshot.val() || {}; const tbody = document.getElementById('block-users-list'); tbody.innerHTML = ''; const arr = Object.entries(users).map(([id,u])=>({userId:id,...u})); if (arr.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No users.</td></tr>'; return; } arr.forEach(u => { const exp = u.expiryDate && new Date(u.expiryDate) < new Date(); const stat = u.isBlocked ? 'blocked' : exp ? 'expired' : 'active'; const tr = document.createElement('tr'); tr.innerHTML = `<td>${u.userId}</td><td>${u.machineId||''}</td><td><span class="status-badge status-${stat}">${stat.charAt(0).toUpperCase()+stat.slice(1)}</span></td><td>${u.expiryDate?new Date(u.expiryDate).toLocaleString():'N/A'}</td><td>${u.lastActive?new Date(u.lastActive).toLocaleString():'Never'}</td><td><div class="action-buttons">${stat==='blocked' ? `<button class="btn btn-success btn-sm" onclick="toggleUserBlock('${u.userId}',false,'${u.machineId||''}')"><i class="fas fa-check"></i> Unblock</button>` : `<button class="btn btn-danger btn-sm" onclick="toggleUserBlock('${u.userId}',true,'${u.machineId||''}')"><i class="fas fa-ban"></i> Block</button>`}</div></td>`; tbody.appendChild(tr); }); }); }
         function toggleUserBlock(userId, block, hwid) { const action = block ? 'block' : 'unblock'; if (confirm(`Sure to ${action} user ${userId}${hwid && hwid !== '' && block ? ` and HWID ${hwid}` : ''}?`)) { usersRef.child(userId).update({isBlocked: block}).then(() => { let hwidPromise = Promise.resolve(); if (hwid && hwid !== '') { hwidPromise = block ? blockedHwidsRef.child(hwid).set(true) : blockedHwidsRef.child(hwid).remove(); } hwidPromise.then(() => { alert(`User ${userId}${hwid && hwid !== '' ? ` (HWID ${hwid} status also updated if applicable)`:''} ${action}ed.`); logActivity('Admin', `${action}ed user ${userId}${hwid && hwid !== '' ? ` and HWID ${hwid}`:''}`); }).catch(err => alert(`User ${action}ed, but HWID operation failed: ${err.message}`)).finally(() => { loadDashboardStats(); }); }).catch(err => alert(`Error: ${err.message}`)); } }
-        function loadPendingTransactions() { transactionsRef.on('value', snapshot => { const allTrans = snapshot.val() || {}; const tbody = document.getElementById('pending-transactions-list'); tbody.innerHTML = ''; let totalPendingAmount = 0; let hasPendingTrans = false; for (const uid in allTrans) { for (const tid_firebase in allTrans[uid]) { const t = allTrans[uid][tid_firebase]; if (t.status === "pending_verification") { hasPendingTrans = true; totalPendingAmount += t.amount || 0; const tr = document.createElement('tr'); const paymentMethodDisplay = t.paymentMethod ? `(${t.paymentMethod.charAt(0).toUpperCase() + t.paymentMethod.slice(1)})` : ''; tr.innerHTML = `<td>${uid}</td><td>৳${t.amount||0} ${paymentMethodDisplay}</td><td>${t.paymentTransactionId || 'N/A'}</td><td>${t.date ? new Date(t.date).toLocaleString() : 'N/A'}</td><td><span class="status-badge status-pending_verification">Pending</span></td><td><div class="action-buttons" style="flex-wrap:wrap;"><button class="btn btn-success btn-sm" onclick="approveTransaction('${uid}','${tid_firebase}',${t.amount})"><i class="fas fa-check"></i> Approve</button><button class="btn btn-accent btn-sm" onclick="approveTransactionWithBonus('${uid}','${tid_firebase}',${t.amount})"><i class="fas fa-star"></i> Approve+Bonus</button><button class="btn btn-danger btn-sm" onclick="rejectTransaction('${uid}','${tid_firebase}')"><i class="fas fa-times"></i> Reject</button></div></td>`; tbody.appendChild(tr); } } } document.getElementById('total-pending-amount').textContent = `৳${totalPendingAmount}`; if (!hasPendingTrans) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No pending transactions.</td></tr>'; } }); }
+        
+        function loadPendingTransactions() {
+            transactionsRef.on('value', snapshot => {
+                const allTrans = snapshot.val() || {};
+                const tbody = document.getElementById('pending-transactions-list');
+                tbody.innerHTML = '';
+                let totalPendingAmount = 0;
+                let hasPendingTrans = false;
+
+                for (const uid in allTrans) {
+                    for (const tid_firebase in allTrans[uid]) {
+                        const t = allTrans[uid][tid_firebase];
+                        if (t.status === "pending_verification") {
+                            hasPendingTrans = true;
+                            totalPendingAmount += t.amount || 0;
+                            const tr = document.createElement('tr');
+
+                            let proofDisplay = '';
+                            let txnIdDisplay = t.paymentTransactionId || 'N/A';
+
+                            if (t.proofType === 'screenshot' && t.screenshotURL) {
+                                proofDisplay = `(Screenshot)`;
+                                txnIdDisplay = `<a href="${t.screenshotURL}" target="_blank" class="clickable-cell">View Screenshot</a>`;
+                            } else if (t.paymentTransactionId) {
+                                proofDisplay = `(Txn ID)`;
+                            } else {
+                                proofDisplay = t.paymentMethod ? `(${t.paymentMethod.charAt(0).toUpperCase() + t.paymentMethod.slice(1)})` : '';
+                            }
+
+                            tr.innerHTML = `<td>${uid}</td>
+                                <td>৳${t.amount||0} ${proofDisplay}</td>
+                                <td>${txnIdDisplay}</td>
+                                <td>${t.date ? new Date(t.date).toLocaleString() : 'N/A'}</td>
+                                <td><span class="status-badge status-pending_verification">Pending</span></td>
+                                <td><div class="action-buttons" style="flex-wrap:wrap;">
+                                    <button class="btn btn-success btn-sm" onclick="approveTransaction('${uid}','${tid_firebase}',${t.amount})"><i class="fas fa-check"></i> Approve</button>
+                                    <button class="btn btn-accent btn-sm" onclick="approveTransactionWithBonus('${uid}','${tid_firebase}',${t.amount})"><i class="fas fa-star"></i> Approve+Bonus</button>
+                                    <button class="btn btn-danger btn-sm" onclick="rejectTransaction('${uid}','${tid_firebase}')"><i class="fas fa-times"></i> Reject</button>
+                                </div></td>`;
+                            tbody.appendChild(tr);
+                        }
+                    }
+                }
+                document.getElementById('total-pending-amount').textContent = `৳${totalPendingAmount}`;
+                if (!hasPendingTrans) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No pending transactions.</td></tr>';
+                }
+            });
+        }
+        
         function approveTransaction(userId, transactionFirebaseKey, amount) { if (confirm(`Approve ৳${amount} for ${userId}?`)) { usersRef.child(userId).once('value', snapshot => { const user = snapshot.val() || {}; const newBalance = (user.balance || 0) + amount; usersRef.child(userId).update({ balance: newBalance }).then(() => { transactionsRef.child(`${userId}/${transactionFirebaseKey}`).update({ status: "completed" }).then(() => { alert("Transaction approved."); logActivity('Admin', `Approved ৳${amount} for ${userId}`); loadDashboardStats(); }).catch(err => alert("Tx status update error: " + err.message)); }).catch(err => alert("Balance update error: " + err.message)); }); } }
         function approveTransactionWithBonus(userId, transactionFirebaseKey, amount) { if (confirm(`Approve ৳${amount} for user ${userId} AND apply bonus?`)) { usersRef.child(userId).once('value', snapshot => { const user = snapshot.val() || {}; let currentBalance = user.balance || 0; let currentTotalAddedForBonus = user.totalAddedForBonus || 0; let currentAccumulatedBonus = user.accumulatedBonus || 0; const originalLastBonusTierReached = user.lastBonusTierReached || 0; let currentRecentBonusAmount = user.recentBonusAmount || 0; const newBalanceAfterDeposit = currentBalance + amount; const newTotalAddedForBonusAfterThisTx = currentTotalAddedForBonus + amount; let totalBonusAwardedInThisTransaction = 0; let highestSingleBonusAmountInThisTx = 0; let highestTierThresholdReachedInThisTx = originalLastBonusTierReached; let bonusesAppliedDetails = []; let totalBonusAtOldTier = 0; const oldTierData = bonusTiers.find(t => t.threshold === originalLastBonusTierReached); if (oldTierData) { totalBonusAtOldTier = oldTierData.bonus; } let totalBonusAtNewTier = 0; for (const tier of bonusTiers) { if (newTotalAddedForBonusAfterThisTx >= tier.threshold) { totalBonusAtNewTier = tier.bonus; highestTierThresholdReachedInThisTx = tier.threshold; } else { break; } } totalBonusAwardedInThisTransaction = totalBonusAtNewTier - totalBonusAtOldTier; if (totalBonusAwardedInThisTransaction < 0) { totalBonusAwardedInThisTransaction = 0; } if (totalBonusAwardedInThisTransaction > 0) { bonusesAppliedDetails.push(`Net bonus of ৳${totalBonusAwardedInThisTransaction} for reaching new milestone(s) up to ৳${highestTierThresholdReachedInThisTx}.`); highestSingleBonusAmountInThisTx = totalBonusAwardedInThisTransaction; } const finalUserBalance = newBalanceAfterDeposit; const finalAccumulatedBonusTotal = currentAccumulatedBonus + totalBonusAwardedInThisTransaction; const finalRecentBonusAmountForUser = totalBonusAwardedInThisTransaction > 0 ? highestSingleBonusAmountInThisTx : currentRecentBonusAmount; const updates = { balance: finalUserBalance, totalAddedForBonus: newTotalAddedForBonusAfterThisTx, accumulatedBonus: finalAccumulatedBonusTotal, recentBonusAmount: finalRecentBonusAmountForUser, lastBonusTierReached: highestTierThresholdReachedInThisTx }; usersRef.child(userId).update(updates).then(() => { transactionsRef.child(`${userId}/${transactionFirebaseKey}`).update({ status: "completed" }).then(() => { let alertMsg = `Tx approved. ৳${amount} to balance. `; alertMsg += totalBonusAwardedInThisTransaction > 0 ? `${bonusesAppliedDetails.join(', ')} ` : "No new bonus tiers. "; alertMsg += `Bal:৳${updates.balance}. RecentBonus:৳${updates.recentBonusAmount}. AccBonus:৳${updates.accumulatedBonus}. TotalAdded:৳${updates.totalAddedForBonus}. LastTier:৳${updates.lastBonusTierReached}.`; alert(alertMsg); logActivity('Admin', `Approved ৳${amount} for ${userId}. NewBonus:৳${totalBonusAwardedInThisTransaction}.`); loadDashboardStats(); }).catch(error => { alert("Tx status update error: " + error.message); }); }).catch(error => { alert("User bonus update error: " + error.message); }); }); } }
         function rejectTransaction(userId, transactionFirebaseKey) { if (confirm("Reject this transaction?")) { transactionsRef.child(`${userId}/${transactionFirebaseKey}`).update({ status: "rejected" }).then(() => { alert("Transaction rejected"); logActivity('Admin', `Rejected tx ${transactionFirebaseKey} for ${userId}`); loadDashboardStats(); }).catch(err => alert("Error rejecting tx: " + err.message)); } }
         function sendNotification() { const recipient = document.getElementById('notification-recipient').value; const userId = recipient === 'specific' ? document.getElementById('specific-user-id').value.trim() : null; const title = document.getElementById('notification-title').value.trim(); const message = document.getElementById('notification-message').value.trim(); if (!message) { alert("Please enter a message"); return; } if (recipient === 'specific' && !userId) { alert("Please enter a user ID"); return; } const notificationDataForUser = { title: title || '', message: message, timestamp: Date.now(), sender: 'Admin', read: false }; const notificationDataForAdminLog = { title: title || '', message: message, timestamp: Date.now(), recipient: userId || 'all', sender: 'Admin' }; if (userId) { notificationsRef.child(userId).push(notificationDataForUser).then(() => { adminSentNotificationsRef.push(notificationDataForAdminLog); alert(`Notification sent to user ${userId}`); logActivity('Admin', `Sent notification to ${userId}`); document.getElementById('notification-message').value = ''; document.getElementById('notification-title').value = ''; }).catch(error => alert("Error sending notification: " + error.message)); } else { usersRef.once('value', snapshot => { const users = snapshot.val() || {}; const updates = {}; if (Object.keys(users).length === 0) { alert("No users to send notification to."); return; } for (const uid in users) { updates[`notifications/${uid}/${notificationsRef.child(uid).push().key}`] = notificationDataForUser; } database.ref().update(updates).then(() => { adminSentNotificationsRef.push(notificationDataForAdminLog); alert("Notification sent to all users"); logActivity('Admin', "Sent notification to all users"); document.getElementById('notification-message').value = ''; document.getElementById('notification-title').value = ''; }).catch(error => alert("Error sending notification: " + error.message)); }); } }
         function loadAdminNotificationHistory() { adminSentNotificationsRef.orderByChild('timestamp').on('value', snapshot => { const sentNotifications = {}; snapshot.forEach(child => { sentNotifications[child.key] = child.val(); }); const historyList = document.getElementById('notification-history-list'); historyList.innerHTML = ''; if (Object.keys(sentNotifications).length === 0) { historyList.innerHTML = '<div class="notification-item" style="text-align:center;">No notifications sent yet</div>'; return; } let notifications = []; for (const notifId in sentNotifications) { notifications.push({ id: notifId, ...sentNotifications[notifId] }); } notifications.sort((a, b) => b.timestamp - a.timestamp); notifications.forEach(notification => { const div = document.createElement('div'); div.className = 'notification-item'; div.innerHTML = `<div class="notification-meta"><span>Sent to: <span class="notification-recipient">${notification.recipient === 'all' ? 'All Users' : notification.recipient}</span></span><span>${new Date(notification.timestamp).toLocaleString()}</span></div>${notification.title ? `<h4>${notification.title}</h4>` : ''}<div class="notification-message">${notification.message.replace(/\n/g, '<br>')}</div>`; historyList.appendChild(div); }); }); }
-        function formatForDatetimeLocal(isoString) { if (!isoString) return ''; try { const d = new Date(isoString); if (isNaN(d.getTime())) return ''; return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; } catch (e) { console.error("Date format error:", isoString, e); return '';} }
         
-        function openEditModal(userId, userData) { 
-            currentEditingUserId = userId; 
-            userData = typeof userData === 'string' ? JSON.parse(userData.replace(/&quot;/g, '"')) : userData; 
-            document.getElementById('modalTitle').textContent = `Edit User: ${userId}`; 
-            document.getElementById('edit-user-id-display').value = userId; 
-            document.getElementById('edit-balance').value = userData.balance || 0; 
-            document.getElementById('edit-password').value = ''; 
-            document.getElementById('edit-machine').value = userData.machineId || ''; 
-            document.getElementById('edit-expiry').value = formatForDatetimeLocal(userData.expiryDate); 
-            document.getElementById('edit-batch-status').value = userData.status || ''; 
+        function formatForDatetimeLocal(isoString) { 
+            if (!isoString) return ''; 
+            try { 
+                const d = new Date(isoString); 
+                if (isNaN(d.getTime())) return ''; 
+                return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; 
+            } catch (e) { 
+                console.error("Date format error:", isoString, e); return '';
+            } 
+        }
+
+        function openEditModal(userId, userData) {
+            currentEditingUserId = userId;
+            userData = typeof userData === 'string' ? JSON.parse(userData.replace(/&quot;/g, '"')) : userData;
+            document.getElementById('modalTitle').textContent = `Edit User: ${userId}`;
+            document.getElementById('edit-user-id-display').value = userId;
+            document.getElementById('edit-balance').value = userData.balance || 0;
+            document.getElementById('edit-password').value = '';
+            document.getElementById('edit-machine').value = userData.machineId || '';
+            document.getElementById('edit-expiry').value = formatForDatetimeLocal(userData.expiryDate);
+            document.getElementById('edit-batch-status').value = userData.status || '';
             document.getElementById('edit-is-blocked').checked = userData.isBlocked || false;
-
-            // Populate new lifetime flags
-            document.getElementById('edit-basic-aimbot-lifetime').checked = userData['Basic aimbot lifetime'] || false;
-            document.getElementById('edit-basic-sniper-lifetime').checked = userData['Basic sniper lifetime'] || false;
-            document.getElementById('edit-premium-lifetime').checked = userData['Premium lifetime'] || false;
-            document.getElementById('edit-unsafe-lifetime').checked = userData['Unsafe lifetime'] || false;
-
-            document.getElementById('edit-total-added-for-bonus').value = userData.totalAddedForBonus || 0; 
-            document.getElementById('edit-accumulated-bonus').value = userData.accumulatedBonus || 0; 
-            document.getElementById('edit-recent-bonus-amount').value = userData.recentBonusAmount || 0; 
-            document.getElementById('edit-last-bonus-tier-reached').value = userData.lastBonusTierReached !== undefined ? userData.lastBonusTierReached : (userData.lastBonusMilestoneAchieved === -1 ? -1 : (userData.lastBonusMilestoneAchieved || 0) ); 
             
-            // Populate failedRedeemAttempts
+            const products = [
+                { name: 'premium', fb_lifetime_key: 'Premium lifetime', fb_expiry_key: 'premium_expiry_date' },
+                { name: 'unsafe', fb_lifetime_key: 'Unsafe lifetime', fb_expiry_key: 'unsafe_expiry_date' },
+                { name: 'basic-aimbot', fb_lifetime_key: 'Basic aimbot lifetime', fb_expiry_key: 'basic_aimbot_expiry_date' },
+                { name: 'basic-sniper', fb_lifetime_key: 'Basic sniper lifetime', fb_expiry_key: 'basic_sniper_expiry_date' },
+                { name: 'bypass', fb_lifetime_key: 'Bypass lifetime', fb_expiry_key: 'bypass_expiry_date' }
+            ];
+
+            products.forEach(prod => {
+                const lifetimeCheckbox = document.getElementById(`edit-${prod.name}-lifetime`);
+                const expiryInput = document.getElementById(`edit-${prod.name}-expiry`);
+                
+                lifetimeCheckbox.checked = userData[prod.fb_lifetime_key] || false;
+                expiryInput.value = formatForDatetimeLocal(userData[prod.fb_expiry_key]);
+                
+                const toggleExpiryInput = () => {
+                    expiryInput.disabled = lifetimeCheckbox.checked;
+                    if (lifetimeCheckbox.checked) {
+                        expiryInput.value = '';
+                    }
+                };
+                
+                lifetimeCheckbox.removeEventListener('change', lifetimeCheckbox.toggleHandler);
+                lifetimeCheckbox.toggleHandler = toggleExpiryInput;
+                lifetimeCheckbox.addEventListener('change', lifetimeCheckbox.toggleHandler);
+                toggleExpiryInput();
+            });
+
+            document.getElementById('edit-total-added-for-bonus').value = userData.totalAddedForBonus || 0;
+            document.getElementById('edit-accumulated-bonus').value = userData.accumulatedBonus || 0;
+            document.getElementById('edit-recent-bonus-amount').value = userData.recentBonusAmount || 0;
+            document.getElementById('edit-last-bonus-tier-reached').value = userData.lastBonusTierReached !== undefined ? userData.lastBonusTierReached : (userData.lastBonusMilestoneAchieved === -1 ? -1 : (userData.lastBonusMilestoneAchieved || 0));
             document.getElementById('edit-failed-redeem-attempts').value = userData.failedRedeemAttempts || 0;
-            
-            document.getElementById('edit-reset-free-used').checked = userData.resetFreeUsed || false; 
-            document.getElementById('edit-created-at').value = userData.createdAt ? new Date(userData.createdAt).toLocaleString() : 'N/A'; 
-            document.getElementById('edit-join-date').value = userData.joinDate ? new Date(userData.joinDate).toLocaleString() : 'N/A'; 
-            document.getElementById('editUserModal').classList.add('show'); 
+            document.getElementById('edit-reset-free-used').checked = userData.resetFreeUsed || false;
+            document.getElementById('edit-created-at').value = userData.createdAt ? new Date(userData.createdAt).toLocaleString() : 'N/A';
+            document.getElementById('edit-join-date').value = userData.joinDate ? new Date(userData.joinDate).toLocaleString() : 'N/A';
+            document.getElementById('editUserModal').classList.add('show');
         }
 
         function closeModal() { document.getElementById('editUserModal').classList.remove('show'); currentEditingUserId = null; }
@@ -788,147 +951,170 @@
         
         function saveUserChanges() {
             if (!currentEditingUserId) return;
-
             usersRef.child(currentEditingUserId).once('value', snapshot => {
-                const currentData = snapshot.val(); 
+                const currentData = snapshot.val();
                 if (!currentData) {
                     alert("Error: User data not found. Cannot save changes.");
-                    console.error("User data not found for ID:", currentEditingUserId);
                     return;
                 }
 
-                const updates = {}; 
-
+                const updates = {};
                 updates.balance = parseInt(document.getElementById('edit-balance').value) || 0;
                 updates.machineId = document.getElementById('edit-machine').value.trim();
                 updates.status = document.getElementById('edit-batch-status').value;
                 updates.isBlocked = document.getElementById('edit-is-blocked').checked;
+                
+                const products = [
+                    { name: 'premium', fb_lifetime_key: 'Premium lifetime', fb_expiry_key: 'premium_expiry_date' },
+                    { name: 'unsafe', fb_lifetime_key: 'Unsafe lifetime', fb_expiry_key: 'unsafe_expiry_date' },
+                    { name: 'basic-aimbot', fb_lifetime_key: 'Basic aimbot lifetime', fb_expiry_key: 'basic_aimbot_expiry_date' },
+                    { name: 'basic-sniper', fb_lifetime_key: 'Basic sniper lifetime', fb_expiry_key: 'basic_sniper_expiry_date' },
+                    { name: 'bypass', fb_lifetime_key: 'Bypass lifetime', fb_expiry_key: 'bypass_expiry_date' }
+                ];
 
-                // Add new lifetime flags
-                updates['Basic aimbot lifetime'] = document.getElementById('edit-basic-aimbot-lifetime').checked;
-                updates['Basic sniper lifetime'] = document.getElementById('edit-basic-sniper-lifetime').checked;
-                updates['Premium lifetime'] = document.getElementById('edit-premium-lifetime').checked;
-                updates['Unsafe lifetime'] = document.getElementById('edit-unsafe-lifetime').checked;
-                
+                products.forEach(prod => {
+                    updates[prod.fb_lifetime_key] = document.getElementById(`edit-${prod.name}-lifetime`).checked;
+                    const expiryStr = document.getElementById(`edit-${prod.name}-expiry`).value;
+                    updates[prod.fb_lifetime_key] = expiryStr ? new Date(expiryStr).toISOString() : null;
+                });
+
                 updates.totalAddedForBonus = parseInt(document.getElementById('edit-total-added-for-bonus').value) || 0;
-                
-                const lastBonusTierReachedInput = document.getElementById('edit-last-bonus-tier-reached').value;
-                const parsedLastBonusTier = parseInt(lastBonusTierReachedInput);
-                updates.lastBonusTierReached = isNaN(parsedLastBonusTier) 
-                    ? (currentData.lastBonusTierReached || 0) 
-                    : parsedLastBonusTier;
-                    
+                updates.lastBonusTierReached = parseInt(document.getElementById('edit-last-bonus-tier-reached').value) || 0;
                 updates.resetFreeUsed = document.getElementById('edit-reset-free-used').checked;
 
                 const expiryStr = document.getElementById('edit-expiry').value;
-                if (expiryStr) {
-                    const d = new Date(expiryStr);
-                    if (!isNaN(d.getTime())) {
-                        updates.expiryDate = d.toISOString();
-                    } else { 
-                        if (currentData.hasOwnProperty('expiryDate')) {
-                            updates.expiryDate = currentData.expiryDate;
-                        }
-                    }
-                } else { 
-                    updates.expiryDate = null; 
-                }
+                updates.expiryDate = expiryStr ? new Date(expiryStr).toISOString() : null;
 
                 const newPassword = document.getElementById('edit-password').value.trim();
                 if (newPassword) {
-                    updates.password = newPassword; 
-                } else { 
-                    if (currentData.hasOwnProperty('password')) {
-                        updates.password = currentData.password;
+                    updates.password = newPassword;
+                }
+                
+                // Preserve readonly/system fields
+                ['accumulatedBonus', 'recentBonusAmount', 'failedRedeemAttempts', 'joinDate', 'createdAt'].forEach(key => {
+                    if (currentData.hasOwnProperty(key)) {
+                        updates[key] = currentData[key];
                     }
-                }
-                // Preserve system-managed/read-only fields by ensuring they are copied from currentData
-                // if not explicitly part of 'updates' or handled by their own mechanisms (like failedRedeemAttempts reset button)
-                
-                // These are readonly inputs in the modal, so their values should come from currentData
-                updates.accumulatedBonus = currentData.accumulatedBonus || 0;
-                updates.recentBonusAmount = currentData.recentBonusAmount || 0;
-                
-                // failedRedeemAttempts is readonly input, updated by its own button, value is preserved from currentData
-                if (currentData.hasOwnProperty('failedRedeemAttempts')) {
-                     updates.failedRedeemAttempts = currentData.failedRedeemAttempts;
-                } else {
-                     updates.failedRedeemAttempts = 0; // Default if not present
-                }
-                // After reset, currentData (re-fetched) would have 0.
-                // So this ensures failedRedeemAttempts from latest currentData snapshot is maintained during save.
+                });
 
-
-                if (currentData.hasOwnProperty('joinDate')) {
-                    updates.joinDate = currentData.joinDate;
-                }
-                if (currentData.hasOwnProperty('createdAt')) {
-                    updates.createdAt = currentData.createdAt;
-                }
-                
                 usersRef.child(currentEditingUserId).update(updates).then(() => {
                     alert("User updated successfully.");
-                    logActivity('Admin', `Updated user ${currentEditingUserId} with changes: ${JSON.stringify(updates)}`);
+                    logActivity('Admin', `Updated user ${currentEditingUserId}`);
                     closeModal();
                 }).catch(err => {
                     alert("Update error: " + err.message);
-                    console.error("Firebase update error for user:", currentEditingUserId, "Error:", err, "Attempted updates:", updates);
                 });
             });
         }
 
         function deleteCurrentUser() { if (!currentEditingUserId) return; if (confirm(`Are you sure you want to delete user '${currentEditingUserId}'? This action cannot be undone.`)) { usersRef.child(currentEditingUserId).remove().then(() => { alert(`User '${currentEditingUserId}' deleted successfully.`); logActivity('Admin', `Deleted user ${currentEditingUserId}`); closeModal(); loadDashboardStats(); }).catch(err => alert('Delete error: ' + err.message)); } }
         
-        function createUser() { 
-            const userId = document.getElementById('new-user-id').value.trim(); 
-            const balance = parseInt(document.getElementById('new-user-balance').value) || 0; 
-            const expiryDateInput = document.getElementById('new-user-expiry').value; 
-            if (!userId) { alert("User ID is required."); return; } 
-            usersRef.child(userId).once('value').then(snapshot => { 
-                if (snapshot.exists()) { 
-                    alert(`User ID '${userId}' already exists.`); 
-                } else { 
-                    const nowISO = new Date().toISOString(); 
-                    const userData = { 
-                        balance: balance, 
-                        machineId: "", 
-                        isBlocked: false, 
-                        joinDate: nowISO, 
-                        expiryDate: expiryDateInput ? new Date(expiryDateInput).toISOString() : null, 
-                        password: '', 
-                        status: 'NORMAL PLAYER', 
-                        totalAddedForBonus: 0, 
-                        accumulatedBonus: 0, 
-                        recentBonusAmount: 0, 
-                        lastBonusTierReached: 0, 
-                        resetFreeUsed: false, 
-                        createdAt: nowISO,
-                        // New fields with defaults
-                        'Basic aimbot lifetime': false,
-                        'Basic sniper lifetime': false,
-                        'Premium lifetime': false,
-                        'Unsafe lifetime': false,
-                        failedRedeemAttempts: 0
-                    }; 
-                    usersRef.child(userId).set(userData).then(() => { 
-                        showUserCreatedModal(userId); 
-                        logActivity('Admin', `Created new user: ${userId}`); 
-                        document.getElementById('new-user-id').value = ''; 
-                        document.getElementById('new-user-balance').value = ''; 
-                        document.getElementById('new-user-expiry').value = ''; 
-                        loadDashboardStats(); 
-                    }).catch(err => alert("Create user error: " + err.message)); 
-                } 
-            }).catch(err => alert("Error checking user existence: " + err.message)); 
+        function createUser() {
+            const userId = document.getElementById('new-user-id').value.trim();
+            const balance = parseInt(document.getElementById('new-user-balance').value) || 0;
+            const expiryDateInput = document.getElementById('new-user-expiry').value;
+            if (!userId) { alert("User ID is required."); return; }
+            usersRef.child(userId).once('value').then(snapshot => {
+                if (snapshot.exists()) {
+                    alert(`User ID '${userId}' already exists.`);
+                } else {
+                    const nowISO = new Date().toISOString();
+                    const userData = {
+                        balance: balance, machineId: "", isBlocked: false, joinDate: nowISO,
+                        expiryDate: expiryDateInput ? new Date(expiryDateInput).toISOString() : null,
+                        password: '', status: 'NORMAL PLAYER', totalAddedForBonus: 0, accumulatedBonus: 0,
+                        recentBonusAmount: 0, lastBonusTierReached: 0, resetFreeUsed: false, createdAt: nowISO,
+                        failedRedeemAttempts: 0,
+                        'Premium lifetime': false, premium_expiry_date: null,
+                        'Unsafe lifetime': false, unsafe_expiry_date: null,
+                        'Basic aimbot lifetime': false, basic_aimbot_expiry_date: null,
+                        'Basic sniper lifetime': false, basic_sniper_expiry_date: null,
+                        'Bypass lifetime': false, bypass_expiry_date: null
+                    };
+                    usersRef.child(userId).set(userData).then(() => {
+                        showUserCreatedModal(userId);
+                        logActivity('Admin', `Created new user: ${userId}`);
+                        document.getElementById('new-user-id').value = '';
+                        document.getElementById('new-user-balance').value = '';
+                        document.getElementById('new-user-expiry').value = '';
+                        loadDashboardStats();
+                    }).catch(err => alert("Create user error: " + err.message));
+                }
+            }).catch(err => alert("Error checking user existence: " + err.message));
         }
 
         function showUserCreatedModal(userId) { document.getElementById('created-user-id').textContent = userId; document.getElementById('userCreatedModal').classList.add('show'); }
         function closeUserModal() { document.getElementById('userCreatedModal').classList.remove('show'); }
-        function exportUsers() { usersRef.once('value', snapshot => { const users = snapshot.val() || {}; let csv = 'User ID,Balance,Total Added For Bonus,Recent Bonus Amt,Accumulated Bonus,Last Bonus Tier Reached,HWID,General Status,Batch Status,Is Blocked,Reset Free Used,Failed Redeem Attempts,Basic Aimbot Lifetime,Basic Sniper Lifetime,Premium Lifetime,Unsafe Lifetime,Join Date,Expiry Date,Created At\n'; Object.entries(users).forEach(([uid, u]) => { const exp = u.expiryDate && new Date(u.expiryDate) < new Date(); const generalStat = u.isBlocked ? 'Blocked' : exp ? 'Expired' : 'Active'; const join = u.joinDate ? new Date(u.joinDate).toLocaleString() : 'N/A'; const expiry = u.expiryDate ? new Date(u.expiryDate).toLocaleString() : 'N/A'; const createdAt = u.createdAt ? new Date(u.createdAt).toLocaleString() : 'N/A'; csv += `"${uid}",${u.balance||0},${u.totalAddedForBonus||0},${u.recentBonusAmount||0},${u.accumulatedBonus||0},${u.lastBonusTierReached||0},"${u.machineId||''}","${generalStat}","${u.status||'N/A'}",${u.isBlocked ? 'Yes' : 'No'},${u.resetFreeUsed ? 'Yes' : 'No'},${u.failedRedeemAttempts||0},${u['Basic aimbot lifetime'] ? 'Yes' : 'No'},${u['Basic sniper lifetime'] ? 'Yes' : 'No'},${u['Premium lifetime'] ? 'Yes' : 'No'},${u['Unsafe lifetime'] ? 'Yes' : 'No'},"${join}","${expiry}","${createdAt}"\n`; }); const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.setAttribute('href',url); a.setAttribute('download','users_export.csv'); document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }); }
+        function exportUsers() {
+            usersRef.once('value', snapshot => {
+                const users = snapshot.val() || {};
+                let csvHeader = 'User ID,Balance,Total Added For Bonus,Accumulated Bonus,Last Bonus Tier Reached,HWID,General Status,Batch Status,Is Blocked,Failed Redeem Attempts,Main Expiry,';
+                const products = [
+                    { name: 'Premium', fb_lifetime_key: 'Premium lifetime', fb_expiry_key: 'premium_expiry_date' },
+                    { name: 'Unsafe', fb_lifetime_key: 'Unsafe lifetime', fb_expiry_key: 'unsafe_expiry_date' },
+                    { name: 'Basic Aimbot', fb_lifetime_key: 'Basic aimbot lifetime', fb_expiry_key: 'basic_aimbot_expiry_date' },
+                    { name: 'Basic Sniper', fb_lifetime_key: 'Basic sniper lifetime', fb_expiry_key: 'basic_sniper_expiry_date' },
+                    { name: 'Bypass', fb_lifetime_key: 'Bypass lifetime', fb_expiry_key: 'bypass_expiry_date' }
+                ];
+                products.forEach(p => { csvHeader += `${p.name} Lifetime,${p.name} Expiry,`; });
+                csvHeader += 'Join Date,Created At\n';
+
+                let csv = csvHeader;
+                Object.entries(users).forEach(([uid, u]) => {
+                    const exp = u.expiryDate && new Date(u.expiryDate) < new Date();
+                    const generalStat = u.isBlocked ? 'Blocked' : exp ? 'Expired' : 'Active';
+                    let row = `"${uid}",${u.balance||0},${u.totalAddedForBonus||0},${u.accumulatedBonus||0},${u.lastBonusTierReached||0},"${u.machineId||''}","${generalStat}","${u.status||'N/A'}",${u.isBlocked ? 'Yes' : 'No'},${u.failedRedeemAttempts||0},"${u.expiryDate ? new Date(u.expiryDate).toLocaleString() : 'N/A'}",`;
+                    products.forEach(p => {
+                        const lifetime = u[p.fb_lifetime_key] ? 'Yes' : 'No';
+                        const expiry = u[p.fb_expiry_key] ? new Date(u[p.fb_expiry_key]).toLocaleString() : 'N/A';
+                        row += `${lifetime},"${expiry}",`;
+                    });
+                    row += `"${u.joinDate ? new Date(u.joinDate).toLocaleString() : 'N/A'}","${u.createdAt ? new Date(u.createdAt).toLocaleString() : 'N/A'}"\n`;
+                    csv += row;
+                });
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.setAttribute('href', url); a.setAttribute('download', 'users_export.csv');
+                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            });
+        }
         function logActivity(userId, action) { activityRef.push({ userId: userId, action: action, timestamp: Date.now() }); }
         function logout() { if (confirm("Are you sure you want to logout?")) { document.getElementById("admin-panel").style.display = "none"; document.getElementById("login-screen").style.display = "flex"; document.getElementById("login-username").value = ""; document.getElementById("login-password").value = ""; document.getElementById("remember-me").checked = false; localStorage.removeItem('adminUsername'); localStorage.removeItem('adminPassword'); document.getElementById('particles').style.display = 'none'; } }
         function performLogin() { const u = document.getElementById("login-username").value.trim(); const p = document.getElementById("login-password").value.trim(); const rem = document.getElementById("remember-me").checked; const errEl = document.getElementById("login-error"); if (u === "1" && p === "x") { if (rem) { localStorage.setItem('adminUsername',u); localStorage.setItem('adminPassword',p); } else { localStorage.removeItem('adminUsername'); localStorage.removeItem('adminPassword'); } document.getElementById("login-screen").style.display = "none"; document.getElementById("admin-panel").style.display = "block"; document.getElementById('particles').style.display = 'block'; if (!document.getElementById('particles').hasChildNodes()) { createParticles(); } loadTabData(document.querySelector('.menu-item.active').dataset.tab); errEl.style.display = "none"; } else { errEl.style.display = "block"; errEl.textContent = 'Invalid credentials!'; localStorage.removeItem('adminUsername'); localStorage.removeItem('adminPassword'); } }
-        document.addEventListener('DOMContentLoaded', () => { document.getElementById('current-date').textContent = new Date().toLocaleDateString(); const storedU = localStorage.getItem('adminUsername'); const storedP = localStorage.getItem('adminPassword'); if (storedU && storedP) { document.getElementById('login-username').value = storedU; document.getElementById('login-password').value = storedP; document.getElementById('remember-me').checked = true; performLogin(); } else { document.getElementById("login-screen").style.display = "flex"; document.getElementById("admin-panel").style.display = "none"; } document.getElementById('user-search').addEventListener('input', function() { const term = this.value.toLowerCase(); document.querySelectorAll('#block-users-list tr').forEach(row => { if (row.cells.length > 0 && row.cells[0].textContent.toLowerCase() !== "loading users...") { const uid = row.cells[0].textContent.toLowerCase(); const hwid = row.cells[1].textContent.toLowerCase(); row.style.display = (uid.includes(term) || hwid.includes(term)) ? '' : 'none'; } }); }); document.getElementById('notification-recipient').addEventListener('change', function() { document.getElementById('specific-user-group').style.display = this.value==='specific'?'block':'none'; }); document.querySelectorAll('input[name="code-type"]').forEach(r=>r.addEventListener('change',toggleCodeTypeInputs)); toggleCodeTypeInputs(); });
+        
+        document.addEventListener('DOMContentLoaded', () => { 
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString(); 
+            const storedU = localStorage.getItem('adminUsername'); 
+            const storedP = localStorage.getItem('adminPassword'); 
+            if (storedU && storedP) { 
+                document.getElementById('login-username').value = storedU; 
+                document.getElementById('login-password').value = storedP; 
+                document.getElementById('remember-me').checked = true; performLogin(); 
+            } else { 
+                document.getElementById("login-screen").style.display = "flex"; 
+                document.getElementById("admin-panel").style.display = "none"; 
+            } 
+            document.getElementById('user-search').addEventListener('input', function() { 
+                const term = this.value.toLowerCase(); 
+                document.querySelectorAll('#block-users-list tr').forEach(row => { 
+                    if (row.cells.length > 0 && row.cells[0].textContent.toLowerCase() !== "loading users...") { 
+                        const uid = row.cells[0].textContent.toLowerCase(); 
+                        const hwid = row.cells[1].textContent.toLowerCase(); 
+                        row.style.display = (uid.includes(term) || hwid.includes(term)) ? '' : 'none'; 
+                    } 
+                }); 
+            }); 
+            document.getElementById('notification-recipient').addEventListener('change', function() { 
+                document.getElementById('specific-user-group').style.display = this.value==='specific'?'block':'none'; 
+            }); 
+            
+            // Event listeners for discount forms
+            document.getElementById('lifetime-discount-select').addEventListener('change', () => populateDiscountFormFromDropdown('lifetime'));
+            document.getElementById('lifetime-discount-percentage').addEventListener('input', () => calculateNewPrice('lifetime'));
+            document.getElementById('timed-discount-select').addEventListener('change', () => populateDiscountFormFromDropdown('timed'));
+            document.getElementById('timed-discount-percentage').addEventListener('input', () => calculateNewPrice('timed'));
+        });
+
         function loadMaintenanceUIStatus() { maintenanceRef.once('value').then(snapshot => { const data = snapshot.val() || {}; const panelOn = data.panel === true; const serverOn = data.server === true; document.getElementById('panel-maintenance-toggle').textContent = panelOn ? 'Disable Panel Maintenance' : 'Enable Panel Maintenance'; document.getElementById('server-maintenance-toggle').textContent = serverOn ? 'Disable Server Maintenance' : 'Enable Server Maintenance'; document.getElementById('panel-maintenance-toggle').className = `btn ${panelOn ? 'btn-danger' : 'btn-success'}`; document.getElementById('server-maintenance-toggle').className = `btn ${serverOn ? 'btn-danger' : 'btn-success'}`; document.getElementById('panel-maintenance-message').value = data.panel_message || ''; document.getElementById('server-maintenance-message').value = data.server_message || ''; }); }
         function toggleMaintenanceStatus(type) { maintenanceRef.child(type).once('value').then(snapshot => { const current = snapshot.val() === true; maintenanceRef.child(type).set(!current).then(() => { const msg = `${type.charAt(0).toUpperCase()+type.slice(1)} maintenance ${!current?'enabled':'disabled'}.`; maintenanceHistoryRef.push({type:type,status:!current?'enabled':'disabled',message:msg,timestamp:Date.now(),by:'Admin'}); alert(msg); loadMaintenanceUIStatus(); logActivity('Admin', msg); }); }); }
         function saveMaintenanceMessage(type) { const msg = document.getElementById(`${type}-maintenance-message`).value.trim(); maintenanceRef.child(`${type}_message`).set(msg).then(() => { alert(`${type.charAt(0).toUpperCase()+type.slice(1)} message saved`); logActivity('Admin', `Updated ${type} maintenance message`); }); }
@@ -936,12 +1122,183 @@
         function openToolPopup(toolName) { currentToolName = toolName; document.getElementById('tool-popup-title').textContent = `Edit: ${toolName}`; firebase.database().ref('Tools/' + toolName).once('value').then(snapshot => { document.getElementById('tool-link-input').value = snapshot.val() || ''; }); document.getElementById('toolPopupModal').classList.add('show'); }
         function closeToolPopup() { document.getElementById('toolPopupModal').classList.remove('show'); currentToolName = ''; }
         function saveToolLink() { const link = document.getElementById('tool-link-input').value.trim(); if (!currentToolName) { alert('No tool selected.'); return; } firebase.database().ref('Tools/' + currentToolName).set(link).then(() => { alert(`${currentToolName} link updated`); logActivity('Admin', `Updated tool link for ${currentToolName}`); closeToolPopup(); }).catch(err => { alert('Error updating link: ' + err.message); }); }
-        function toggleCodeTypeInputs() { const codeType = document.querySelector('input[name="code-type"]:checked').value; const balanceOptions = document.getElementById('balance-options'); const timeOptions = document.getElementById('time-options'); balanceOptions.style.display = codeType === 'balance' ? 'block' : 'none'; timeOptions.style.display = codeType === 'time' ? 'block' : 'none'; if (codeType === 'balance') { document.getElementById('redeem-code-days').value = '0'; document.getElementById('redeem-code-hours').value = '0'; document.getElementById('redeem-code-minutes').value = '0'; } else { document.getElementById('redeem-code-balance').value = '0'; } }
-        async function generateRedeemCode() { const type = document.querySelector('input[name="code-type"]:checked').value; const code = "killerx-" + Math.random().toString(36).substring(2, 10).toUpperCase(); const balance = parseInt(document.getElementById("redeem-code-balance").value) || 0; const days = parseInt(document.getElementById("redeem-code-days").value) || 0; const hours = parseInt(document.getElementById("redeem-code-hours").value) || 0; const minutes = parseInt(document.getElementById("redeem-code-minutes").value) || 0; const claimLimit = parseInt(document.getElementById("redeem-code-limit").value) || 1; const validityDays = parseInt(document.getElementById("redeem-code-validity-days").value) || 0; let totalSeconds = (days * 86400) + (hours * 3600) + (minutes * 60); let validUntil = validityDays > 0 ? Date.now() + (validityDays * 86400000) : 0; let data = { createdAt: Date.now(), claimLimit: claimLimit, claimedCount: 0, validUntil: validUntil, status: 'active' }; if (type === "balance") data.amount = balance; else data.timeAddedMillis = totalSeconds * 1000; firebase.database().ref("redeemCodes/" + code).set(data).then(() => { document.getElementById("display-generated-code").textContent = code; document.getElementById("generated-code-display").style.display = "block"; logActivity('Admin', `Generated redeem code: ${code} (Type: ${type})`); }); }
-        function copyGeneratedCode() { const codeText = document.getElementById('display-generated-code').textContent; navigator.clipboard.writeText(codeText).then(() => alert('Code copied!')).catch(err => { console.error('Copy failed: ', err); alert('Failed to copy.'); }); }
-        function loadRedeemCodes() { redeemCodesRef.on('value', snapshot => { const codes = snapshot.val() || {}; const tbody = document.getElementById('redeem-code-list'); tbody.innerHTML = ''; const arr = Object.entries(codes).map(([c,d])=>({code:c,...d})).sort((a,b)=>b.createdAt-a.createdAt); if(arr.length === 0){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;">No codes.</td></tr>'; return;} arr.forEach(item => { let statusCls='', statusTxt=item.status; const now=Date.now(); const isExpiredByDate = item.validUntil !== 0 && now > item.validUntil; const isExhaustedByClaims = item.claimedCount >= item.claimLimit; if(item.status==='disabled'){statusCls='status-blocked';statusTxt='Disabled';} else if(isExpiredByDate){statusCls='status-expired';statusTxt='Expired';} else if(isExhaustedByClaims){statusCls='status-blocked';statusTxt='Exhausted';} else{statusCls='status-active';statusTxt='Active';} let timeStr='N/A'; if(item.timeAddedMillis > 0){ const totS=item.timeAddedMillis/1000, d=Math.floor(totS/(24*3600)),h=Math.floor((totS%(24*3600))/3600),m=Math.floor((totS%3600)/60); let p=[]; if(d>0)p.push(`${d}D`);if(h>0)p.push(`${h}H`);if(m>0)p.push(`${m}M`); timeStr=p.join(' ')||'<1M'; } else if (typeof item.amount === 'number' && item.amount > 0) { timeStr = 'N/A'; } else if (typeof item.amount === 'number' && item.amount === 0 && typeof item.timeAddedMillis !== 'number') { timeStr = '0'; } const tr=document.createElement('tr'); tr.innerHTML=`<td>${item.code}</td><td>${item.amount||0}</td><td>${timeStr}</td><td>${item.claimLimit}</td><td>${item.claimedCount}</td><td><span class="status-badge ${statusCls}">${statusTxt}</span></td><td>${item.validUntil ? new Date(item.validUntil).toLocaleString() : 'Never'}</td><td>${new Date(item.createdAt).toLocaleString()}</td><td><div class="action-buttons" style="flex-wrap:wrap;">${item.status==='active'&&!isExpiredByDate&&!isExhaustedByClaims?`<button class="btn btn-warning btn-sm" onclick="toggleRedeemCodeStatus('${item.code}','disabled')"><i class="fas fa-ban"></i> Disable</button>`:''}${item.status==='disabled'||isExpiredByDate||isExhaustedByClaims?`<button class="btn btn-success btn-sm" onclick="toggleRedeemCodeStatus('${item.code}','active')"><i class="fas fa-check"></i> Enable</button>`:''}<button class="btn btn-danger btn-sm" onclick="deleteRedeemCode('${item.code}')"><i class="fas fa-trash"></i> Delete</button></div></td>`; tbody.appendChild(tr); }); }); }
-        function toggleRedeemCodeStatus(code, status) { const act = status==='active'?'enable':'disable'; if(confirm(`Sure to ${act} code '${code}'?`)){ redeemCodesRef.child(code).update({status:status}).then(()=> {alert(`Code '${code}' ${act}d!`); logActivity('Admin',`${act.charAt(0).toUpperCase()+act.slice(1)}d code: ${code}`);}).catch(err=>alert('Update error: '+err.message)); } }
-        function deleteRedeemCode(code) { if(confirm(`Delete code '${code}'?`)){ redeemCodesRef.child(code).remove().then(()=> {alert(`Code '${code}' deleted!`); logActivity('Admin',`Deleted code: ${code}`);}).catch(err=>alert('Delete error: '+err.message)); } }
+        
+        // **REWRITTEN STOCKS & DISCOUNT FUNCTIONS**
+        function loadStocksDiscountTab() {
+             Promise.all([
+                storeProductsRef.once('value'),
+                stocksDiscountRef.once('value')
+            ]).then(([productsSnapshot, stocksSnapshot]) => {
+                const products = productsSnapshot.val() || {};
+                const stocksData = stocksSnapshot.val() || {};
+                
+                const productStatusList = document.getElementById('product-status-list');
+                const lifetimeSelect = document.getElementById('lifetime-discount-select');
+                const timedSelect = document.getElementById('timed-discount-select');
+
+                productStatusList.innerHTML = '';
+                const currentLifetimeVal = lifetimeSelect.value;
+                const currentTimedVal = timedSelect.value;
+                
+                // Clear dropdowns
+                while (lifetimeSelect.options.length > 1) lifetimeSelect.remove(1);
+                while (timedSelect.options.length > 1) timedSelect.remove(1);
+
+                if (Object.keys(products).length === 0) {
+                    productStatusList.innerHTML = '<tr><td colspan="5" style="text-align: center;">No products found. Add products in "Manage Store" tab.</td></tr>';
+                    return;
+                }
+
+                Object.entries(products).forEach(([id, product]) => {
+                    const cleanTitle = (product.title || '').replace(/\s+/g, '');
+                    const stockKey = cleanTitle + 'Stock';
+                    const discountKey = cleanTitle + 'Discount';
+
+                    const stockValue = stocksData[stockKey];
+                    const discountString = stocksData[discountKey];
+
+                    const inStock = stockValue === 'Ture' || stockValue === true || stockValue === 'True';
+                    const discountPercentage = parseInt(String(discountString)) || 0;
+                    
+                    let priceDisplay = `৳${product.price}`;
+                    if (discountPercentage > 0) {
+                        const discountedPrice = product.price - (product.price * (discountPercentage / 100));
+                        priceDisplay = `<span style="color: var(--success-color); font-weight: 700;">৳${discountedPrice.toFixed(2)}</span> <s style="color: var(--secondary-text); font-size: 0.85rem;">৳${product.price}</s>`;
+                    }
+
+                    const stockStatusDisplay = inStock ? `<span class="status-badge status-active">In Stock</span>` : `<span class="status-badge status-blocked">Out of Stock</span>`;
+                    const discountInfo = discountPercentage > 0 ? `${discountPercentage}% off` : 'None';
+                    const stockToggleButton = `<button class="btn ${inStock ? 'btn-warning' : 'btn-success'} btn-sm" onclick="toggleStockStatus('${cleanTitle}', ${inStock})"><i class="fas fa-power-off"></i> ${inStock ? 'Set OOS' : 'Set In Stock'}</button>`;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${product.title || 'N/A'}</td><td>${priceDisplay}</td><td>${stockStatusDisplay}</td><td>${discountInfo}</td><td><div class="action-buttons">${stockToggleButton}</div></td>`;
+                    productStatusList.appendChild(tr);
+
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = product.title;
+                    option.dataset.price = product.price;
+                    option.dataset.cleanTitle = cleanTitle;
+
+                    if (product.productValidity === 'lifetime') {
+                        lifetimeSelect.appendChild(option);
+                    } else {
+                        timedSelect.appendChild(option);
+                    }
+                });
+                
+                lifetimeSelect.value = currentLifetimeVal;
+                timedSelect.value = currentTimedVal;
+                populateDiscountFormFromDropdown('lifetime');
+                populateDiscountFormFromDropdown('timed');
+            }).catch(error => {
+                console.error("Error loading stocks and discount data:", error);
+                document.getElementById('product-status-list').innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--danger-color);">Error loading data.</td></tr>';
+            });
+        }
+        
+        function calculateNewPrice(type) {
+            const select = document.getElementById(`${type}-discount-select`);
+            const newPriceEl = document.getElementById(`${type}-new-price`);
+            const percentageInput = document.getElementById(`${type}-discount-percentage`);
+
+            if (!select.value) { newPriceEl.textContent = '৳0'; return; }
+            
+            const selectedOption = select.options[select.selectedIndex];
+            const price = parseFloat(selectedOption.dataset.price) || 0;
+            const newDiscountPercentage = parseFloat(percentageInput.value) || 0;
+            
+            let newPrice = price;
+            if (newDiscountPercentage > 0 && newDiscountPercentage <= 100) {
+                newPrice = price - (price * (newDiscountPercentage / 100));
+            }
+            newPriceEl.textContent = `৳${newPrice.toFixed(2)}`;
+        }
+
+        function populateDiscountFormFromDropdown(type) {
+            const select = document.getElementById(`${type}-discount-select`);
+            const originalPriceEl = document.getElementById(`${type}-original-price`);
+            const percentageInput = document.getElementById(`${type}-discount-percentage`);
+
+            if (!select.value) {
+                originalPriceEl.textContent = '৳0';
+                percentageInput.value = '';
+                calculateNewPrice(type);
+                return;
+            }
+
+            const selectedOption = select.options[select.selectedIndex];
+            const price = parseFloat(selectedOption.dataset.price) || 0;
+            const cleanTitle = selectedOption.dataset.cleanTitle;
+            const discountKey = cleanTitle + 'Discount';
+
+            originalPriceEl.textContent = `৳${price.toFixed(2)}`;
+
+            stocksDiscountRef.child(discountKey).once('value').then(snapshot => {
+                const discountString = snapshot.val() || "0%";
+                percentageInput.value = parseInt(String(discountString)) || 0;
+                calculateNewPrice(type);
+            });
+        }
+
+        function applyDiscount(type) {
+            const select = document.getElementById(`${type}-discount-select`);
+            if (!select.value) { alert(`Please select a ${type} product first.`); return; }
+            
+            const selectedOption = select.options[select.selectedIndex];
+            const cleanTitle = selectedOption.dataset.cleanTitle;
+            const discountKey = cleanTitle + 'Discount';
+            const percentage = parseFloat(document.getElementById(`${type}-discount-percentage`).value);
+
+            if (isNaN(percentage) || percentage < 0 || percentage > 100) {
+                alert("Please enter a valid discount percentage (0-100)."); return;
+            }
+
+            stocksDiscountRef.child(discountKey).set(`${percentage}%`)
+                .then(() => {
+                    alert(`Discount of ${percentage}% applied to ${selectedOption.textContent}.`);
+                    logActivity('Admin', `Applied ${percentage}% discount to ${selectedOption.textContent}`);
+                    loadStocksDiscountTab();
+                })
+                .catch(err => alert("Error applying discount: " + err.message));
+        }
+
+        function removeDiscount(type) {
+            const select = document.getElementById(`${type}-discount-select`);
+            if (!select.value) { alert(`Please select a ${type} product first.`); return; }
+            
+            const selectedOption = select.options[select.selectedIndex];
+            const cleanTitle = selectedOption.dataset.cleanTitle;
+            const discountKey = cleanTitle + 'Discount';
+
+            if (!confirm(`Remove discount from ${selectedOption.textContent}?`)) return;
+
+            stocksDiscountRef.child(discountKey).remove()
+                .then(() => {
+                    alert("Discount removed successfully.");
+                    logActivity('Admin', `Removed discount from ${selectedOption.textContent}`);
+                    loadStocksDiscountTab();
+                })
+                .catch(err => alert("Error removing discount: " + err.message));
+        }
+
+        function toggleStockStatus(cleanTitle, isCurrentlyInStock) {
+            const newStockStatus = !isCurrentlyInStock;
+            const action = newStockStatus ? "In Stock" : "Out of Stock";
+            const newStockString = newStockStatus ? "True" : "False";
+            const stockKey = cleanTitle + 'Stock';
+
+            if (confirm(`Set this product as "${action}"?`)) {
+                stocksDiscountRef.child(stockKey).set(newStockString)
+                    .then(() => {
+                        alert(`Product status updated to "${action}".`);
+                        logActivity('Admin', `Set ${cleanTitle} to ${action}`);
+                        loadStocksDiscountTab();
+                    })
+                    .catch(err => alert("Error updating stock status: " + err.message));
+            }
+        }
+        
         async function uploadImage() { const fileInput = document.getElementById('image-upload-input'); const urlInput = document.getElementById('uploaded-image-url'); const copyBtn = document.getElementById('copy-image-url-btn'); const progBar = document.getElementById('upload-progress-bar'); const statMsg = document.getElementById('upload-status-message'); const preview = document.getElementById('uploaded-image-preview'); const file = fileInput.files[0]; if (!file) { alert('Select an image.'); return; } urlInput.value = ''; copyBtn.disabled = true; progBar.style.width = '0%'; progBar.style.backgroundColor='var(--primary-color)'; progBar.style.display='block'; statMsg.textContent='Uploading...'; statMsg.style.color='var(--secondary-text)'; statMsg.style.display='block'; preview.style.display='none'; preview.src=''; const fileName = `products/${Date.now()}_${file.name}`; const imgRef = storageRef.child('images/' + fileName); const task = imgRef.put(file); task.on('state_changed', snap => { const prog = (snap.bytesTransferred / snap.totalBytes) * 100; progBar.style.width = prog + '%'; statMsg.textContent = `Upload ${Math.floor(prog)}%`; if(snap.state===firebase.storage.TaskState.PAUSED) statMsg.textContent='Paused'; }, err => { console.error(err); alert('Upload failed: '+err.message); statMsg.textContent=`Failed: ${err.code}`; statMsg.style.color='var(--danger-color)'; progBar.style.backgroundColor='var(--danger-color)'; }, () => { task.snapshot.ref.getDownloadURL().then(dlURL => { urlInput.value = dlURL; copyBtn.disabled = false; progBar.style.backgroundColor='var(--success-color)'; statMsg.textContent='Complete! URL ready.'; statMsg.style.color='var(--success-color)'; alert('Image uploaded! URL ready.'); logActivity('Admin', `Uploaded image: ${fileName}`); document.getElementById('product-image-url').value = dlURL; showImagePreview(dlURL); listUploadedImages(); }); }); }
         function deleteProductConfirm() { if(!currentEditingProductId)return; const title=document.getElementById('edit-product-title').value||'this product'; if(confirm(`Delete '${title}'?`)) deleteProduct(currentEditingProductId,title); }
         function deleteProduct(id,title) { if (confirm(`Are you sure you want to delete product '${title}'? This cannot be undone.`)) { storeProductsRef.child(id).remove().then(()=>{alert(`Product '${title}' deleted.`);logActivity('Admin',`Deleted: ${title} (ID:${id})`);if(currentEditingProductId===id)closeEditProductModal();}).catch(err=>alert('Delete error: '+err.message)); } }
