@@ -134,7 +134,8 @@
         .status-active { background-color: rgba(0, 200, 83, 0.1); color: var(--success-color); border: 1px solid rgba(0, 200, 83, 0.3); }
         .status-blocked { background-color: rgba(255, 61, 0, 0.1); color: var(--danger-color); border: 1px solid rgba(255, 61, 0, 0.3); }
         .status-expired { background-color: rgba(255, 171, 0, 0.1); color: var(--warning-color); border: 1px solid rgba(255, 171, 0, 0.3); }
-        .status-pending_verification { background-color: rgba(253, 203, 110, 0.2); color: #d68910; border: 1px solid rgba(253, 203, 110, 0.4); }
+        .status-pending_verification, .status-pending { background-color: rgba(253, 203, 110, 0.2); color: #d68910; border: 1px solid rgba(253, 203, 110, 0.4); }
+        .status-shipped { background-color: rgba(37, 150, 190, 0.1); color: #2596be; border: 1px solid rgba(37, 150, 190, 0.3); }
         
         .action-buttons { display: flex; gap: 8px; }
         .action-buttons .btn { padding: 8px 12px; font-size: 12px; border-radius: 6px; }
@@ -275,12 +276,14 @@
         <li class="menu-item" data-tab="tools"><i class="fas fa-wrench"></i> Tools</li>
         <li class="menu-item" data-tab="maintenance"><i class="fas fa-tools"></i> Maintenance</li>
         <li class="menu-item" data-tab="pending-transactions"><i class="fas fa-money-bill-wave"></i> Transactions</li>
+        <li class="menu-item" data-tab="physical-orders"><i class="fas fa-truck"></i> Physical Orders</li>
     </div>
     <div class="nav-row" style="margin-bottom: 0;">
         <li class="menu-item" data-tab="notifications"><i class="fas fa-bell"></i> Notifications</li>
         <li class="menu-item" data-tab="manage-store"><i class="fas fa-store"></i> Manage Store</li>
         <li class="menu-item" data-tab="panel-link-updater"><i class="fas fa-link"></i> Panel Links</li>
-    </ul>
+    </div>
+</ul>
 </div>
 
 <!-- Dashboard Tab -->
@@ -351,6 +354,26 @@
     <table class="data-table">
         <thead><tr><th>User ID</th><th>Amount (Proof)</th><th>Proof/Txn ID</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody id="pending-transactions-list"><tr><td colspan="6" style="text-align: center;">No pending transactions found</td></tr></tbody>
+    </table>
+</div>
+
+<!-- Physical Orders Tab -->
+<div class="tab-content" id="physical-orders">
+    <div class="header"><h1>Physical Product Orders</h1></div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>User ID</th>
+                <th>Product</th>
+                <th>Delivery Info</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="physical-orders-list">
+            <tr><td colspan="6" style="text-align: center;">No physical orders found.</td></tr>
+        </tbody>
     </table>
 </div>
 
@@ -463,10 +486,33 @@
 
 <!-- Manage Store Tab -->
 <div class="tab-content" id="manage-store">
-    <div class="header"><h1>Manage Store Products</h1></div>
+    <div class="header"><h1>Manage Store</h1></div>
+    
+    <!-- NEW: Category Management Section -->
+    <div class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2><i class="fas fa-layer-group"></i> Manage Categories</h2>
+            <button class="btn btn-primary" onclick="openCategoryModal()"><i class="fas fa-plus"></i> Add Category</button>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Order</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="category-list-table">
+                <tr><td colspan="5" style="text-align: center;">Loading categories...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
     <div class="form-container">
         <h2><i class="fas fa-upload"></i> Image Uploader</h2>
-        <p style="color: var(--secondary-text); margin-bottom: 20px; font-size: 0.9rem;">Upload an image to get a public URL for your product.</p>
+        <p style="color: var(--secondary-text); margin-bottom: 20px; font-size: 0.9rem;">Upload an image to get a public URL for your product or category.</p>
         <div class="form-group"><label for="image-upload-input">Select Image File</label><input type="file" id="image-upload-input" accept="image/*" class="form-control" style="padding: 10px;"/></div>
         <div class="form-group"><button class="btn btn-primary" onclick="uploadImage()" style="width: 100%;"><i class="fas fa-arrow-alt-circle-up"></i> Upload Image</button><div id="upload-progress-bar" style="width: 0%; height: 5px; background-color: var(--primary-color); border-radius: 5px; margin-top: 10px; transition: width 0.3s ease; display: none;"></div><img id="uploaded-image-preview" src="" alt="Preview" style="max-width: 100%; margin-top: 15px; border-radius: 8px; display: none;"/></div>
         <div class="form-group" style="margin-top: 15px;"><label for="uploaded-image-url">Uploaded Image URL</label><div style="display: flex; gap: 10px;"><input id="uploaded-image-url" type="text" class="form-control" readonly placeholder="URL will appear here" style="flex-grow: 1;"/><button class="btn btn-accent" onclick="copyUploadedImageUrl()" id="copy-image-url-btn" disabled><i class="fas fa-copy"></i> Copy URL</button></div><p id="upload-status-message" style="margin-top: 8px; font-size: 0.85rem; color: var(--secondary-text); display: none;"></p></div>
@@ -477,8 +523,21 @@
         <div class="form-group"><label for="product-title">Product Title</label><input id="product-title" type="text" class="form-control" placeholder="Enter product title"/></div>
         <div class="form-group"><label for="product-price">Price (৳)</label><input id="product-price" type="number" min="0" value="0" class="form-control" placeholder="Enter product price"/></div>
         <div class="form-group"><label for="product-description">Description</label><textarea id="product-description" class="form-control" placeholder="Enter product description"></textarea></div>
-        <div class="form-group"><label for="product-category">Category</label><select id="product-category" class="form-control"><option value="">Select a Category</option><option value="PREMIUM_PANEL">PREMIUM PANEL</option><option value="BASIC_PANEL">BASIC PANEL</option><option value="UNSAFE_PANEL">UNSAFE PANEL</option><option value="BYPASS">BYPASS</option><option value="OTHERS">OTHERS</option></select></div>
+        <!-- MODIFIED: Category dropdown is now dynamic -->
+        <div class="form-group">
+            <label for="product-category">Category</label>
+            <select id="product-category" class="form-control">
+                <option value="">-- Select a Category --</option>
+            </select>
+        </div>
         <div class="form-group"><label for="product-validity">Product Validity</label><select id="product-validity" class="form-control"><option value="1_month">1 Month</option><option value="2_months">2 Months</option><option value="3_months">3 Months</option><option value="5_months">5 Months</option><option value="lifetime">Lifetime</option></select></div>
+        <div class="form-group">
+            <label for="product-type">Product Type</label>
+            <select id="product-type" class="form-control">
+                <option value="virtual">Virtual (Generates Redeem Code)</option>
+                <option value="physical">Physical (Requires Delivery)</option>
+            </select>
+        </div>
         <button class="btn btn-primary" onclick="addProduct()" style="width: 100%; margin-top: 15px;"><i class="fas fa-plus"></i> Add Product</button>
     </div>
     <div class="form-container">
@@ -605,8 +664,20 @@
             <div class="form-group"><label>Title:</label><input class="form-control" id="edit-product-title" type="text"/></div>
             <div class="form-group"><label>Price (৳):</label><input class="form-control" id="edit-product-price" type="number"/></div>
             <div class="form-group"><label>Description:</label><textarea class="form-control" id="edit-product-description"></textarea></div>
-            <div class="form-group"><label for="edit-product-category">Category</label><select id="edit-product-category" class="form-control"><option value="PREMIUM_PANEL">PREMIUM PANEL</option><option value="BASIC_PANEL">BASIC PANEL</option><option value="UNSAFE_PANEL">UNSAFE PANEL</option><option value="BYPASS">BYPASS</option><option value="OTHERS">OTHERS</option></select></div>
+            <div class="form-group">
+                <label for="edit-product-category">Category</label>
+                <select id="edit-product-category" class="form-control">
+                    <option value="">-- Select a Category --</option>
+                </select>
+            </div>
             <div class="form-group"><label for="edit-product-validity">Product Validity</label><select id="edit-product-validity" class="form-control"><option value="1_month">1 Month</option><option value="2_months">2 Months</option><option value="3_months">3 Months</option><option value="5_months">5 Months</option><option value="lifetime">Lifetime</option></select></div>
+            <div class="form-group">
+                <label for="edit-product-type">Product Type</label>
+                <select id="edit-product-type" class="form-control">
+                    <option value="virtual">Virtual (Generates Redeem Code)</option>
+                    <option value="physical">Physical (Requires Delivery)</option>
+                </select>
+            </div>
         </div>
         <div class="modal-footer"><button class="btn btn-danger" onclick="deleteProductConfirm()">Delete Product</button><button class="btn btn-warning" onclick="closeEditProductModal()">Cancel</button><button class="btn btn-primary" onclick="saveProductChanges()">Save Changes</button></div>
     </div>
@@ -622,6 +693,35 @@
         <div class="modal-footer">
             <button class="btn btn-warning" onclick="closePanelLinkModal()">Cancel</button>
             <button class="btn btn-primary" onclick="saveSinglePanelLink()">Save Link</button>
+        </div>
+    </div>
+</div>
+
+<!-- NEW: Category Modal -->
+<div class="modal" id="categoryModal">
+    <div class="modal-content">
+        <div class="modal-header"><h3 id="categoryModalTitle">Add New Category</h3><span class="close" onclick="closeCategoryModal()">×</span></div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="category-name">Category Name</label>
+                <input id="category-name" type="text" class="form-control" placeholder="e.g., Free Fire, OTT Subscription"/>
+            </div>
+            <div class="form-group">
+                <label for="category-description">Description</label>
+                <textarea id="category-description" class="form-control" placeholder="Short description for the category"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="category-image-url">Image URL</label>
+                <input id="category-image-url" type="text" class="form-control" placeholder="Paste image URL here"/>
+            </div>
+             <div class="form-group">
+                <label for="category-order">Display Order</label>
+                <input id="category-order" type="number" class="form-control" placeholder="e.g., 1, 2, 3... (lower is first)" min="1"/>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-warning" onclick="closeCategoryModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveCategory()">Save Category</button>
         </div>
     </div>
 </div>
@@ -647,17 +747,21 @@
         const notificationsRef = database.ref('notifications');
         const adminSentNotificationsRef = database.ref('admin_sent_notifications'); 
         const storeProductsRef = database.ref('storeProducts'); 
+        const storeCategoriesRef = database.ref('storeCategories');
         const storageRef = storage.ref(); 
         const storeRenewalsRef = database.ref('storeRenewals');
         const panelUpdateUrlRef = database.ref('USERPANEL');
         const stocksDiscountRef = database.ref('StocksRdiscount');
+        const physicalOrdersRef = database.ref('physical_orders');
 
         const bonusTiers = [ { threshold: 100,  bonus: 20 }, { threshold: 500,  bonus: 100 }, { threshold: 1000, bonus: 250 }, { threshold: 3000, bonus: 500 }, { threshold: 5000, bonus: 1000 } ].sort((a, b) => a.threshold - b.threshold);
 
         let currentEditingUserId = null;
-        let currentEditingProductId = null; 
+        let currentEditingProductId = null;
+        let currentEditingCategoryId = null; 
         let currentToolName = '';
         let currentEditingPanelType = null;
+        let allStoreCategories = []; // Global cache for categories
 
         document.getElementById('current-date').textContent = new Date().toLocaleDateString();
 
@@ -686,8 +790,9 @@
                 case 'pending-transactions': loadPendingTransactions(); break;
                 case 'maintenance': loadMaintenanceUIStatus(); break;
                 case 'stocks-discount': loadStocksDiscountTab(); break;
-                case 'manage-store': loadStoreProducts(); listUploadedImages(); break;
+                case 'manage-store': loadManageStoreTab(); break;
                 case 'panel-link-updater': /* No specific load needed for static cards */ break; 
+                case 'physical-orders': loadPhysicalOrders(); break;
             }
         }
 
@@ -761,36 +866,171 @@
                 });
         }
 
-
         function addProduct() {
-            const imgUrl = document.getElementById('product-image-url').value.trim(); const title = document.getElementById('product-title').value.trim(); const price = parseFloat(document.getElementById('product-price').value) || 0; const desc = document.getElementById('product-description').value.trim(); const cat = document.getElementById('product-category').value; const validity = document.getElementById('product-validity').value; 
-            if (!imgUrl || !title || isNaN(price) || !desc || !cat || !validity) { alert('Please fill all fields, including validity.'); return; }
+            const imgUrl = document.getElementById('product-image-url').value.trim(); 
+            const title = document.getElementById('product-title').value.trim(); 
+            const price = parseFloat(document.getElementById('product-price').value) || 0; 
+            const desc = document.getElementById('product-description').value.trim(); 
+            const categoryKey = document.getElementById('product-category').value; 
+            const validity = document.getElementById('product-validity').value; 
+            const productType = document.getElementById('product-type').value;
+
+            if (!imgUrl || !title || isNaN(price) || !desc || !categoryKey || !validity) { 
+                alert('Please fill all fields, including selecting a category and validity.'); 
+                return; 
+            }
+            
             const newRef = storeProductsRef.push();
-            const data = { imageUrl: imgUrl, title: title, price: price, description: desc, category: cat, productValidity: validity, createdAt: Date.now()};
-            newRef.set(data).then(() => { alert('Product added successfully!'); logActivity('Admin', `Added product: ${title}`); ['product-image-url', 'product-title', 'product-description', 'product-category'].forEach(id=>document.getElementById(id).value=''); document.getElementById('product-price').value = '0'; document.getElementById('product-validity').value = '1_month'; document.getElementById('uploaded-image-preview').style.display = 'none'; document.getElementById('image-upload-input').value = ''; }).catch(err => alert('Add product error: ' + err.message));
+            const data = { 
+                imageUrl: imgUrl, 
+                title: title, 
+                price: price, 
+                description: desc, 
+                categoryKey: categoryKey,
+                productValidity: validity,
+                productType: productType,
+                inStock: true,
+                createdAt: Date.now()
+            };
+
+            newRef.set(data).then(() => { 
+                alert('Product added successfully and set to "In Stock"!'); 
+                logActivity('Admin', `Added product: ${title}`); 
+                ['product-image-url', 'product-title', 'product-description', 'product-category', 'product-type'].forEach(id => document.getElementById(id).value = ''); 
+                document.getElementById('product-price').value = '0'; 
+                document.getElementById('product-validity').value = '1_month'; 
+                document.getElementById('uploaded-image-preview').style.display = 'none'; 
+                document.getElementById('image-upload-input').value = ''; 
+                if (document.getElementById('stocks-discount').classList.contains('active')) {
+                    loadStocksDiscountTab();
+                }
+            }).catch(err => alert('Add product error: ' + err.message));
+        }
+
+        async function loadManageStoreTab() {
+            try {
+                const categoriesSnapshot = await storeCategoriesRef.once('value');
+                const categories = categoriesSnapshot.val() || {};
+                allStoreCategories = Object.entries(categories).map(([id, data]) => ({ id, ...data }));
+                
+                displayCategoriesInAdmin();
+                populateCategoryDropdowns();
+                loadStoreProducts();
+                listUploadedImages();
+            } catch (error) {
+                console.error("Error loading Manage Store tab:", error);
+                alert("Could not load store data. Please check console for details.");
+            }
+        }
+        
+        function populateCategoryDropdowns() {
+            const dropdowns = [
+                document.getElementById('product-category'),
+                document.getElementById('edit-product-category')
+            ];
+            
+            dropdowns.forEach(dropdown => {
+                if (!dropdown) return;
+                const currentValue = dropdown.value;
+                dropdown.innerHTML = '<option value="">-- Select a Category --</option>'; // Reset
+                
+                allStoreCategories
+                    .sort((a, b) => (a.order || 99) - (b.order || 99))
+                    .forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat.id;
+                        option.textContent = cat.name;
+                        dropdown.appendChild(option);
+                    });
+                dropdown.value = currentValue; // Restore previous selection if possible
+            });
         }
 
         function loadStoreProducts() {
-            storeProductsRef.on('value', snapshot => { const prods = snapshot.val() || {}; const tbody = document.getElementById('product-list'); tbody.innerHTML = '';
-                const arr = Object.entries(prods).map(([id, d]) => ({ id, ...d })).sort((a, b) => b.createdAt - a.createdAt);
-                if (arr.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No products found.</td></tr>'; return; }
-                arr.forEach(p => { const tr = document.createElement('tr'); let validityText = 'N/A';
-                    if (p.productValidity) { if (p.productValidity === 'lifetime') { validityText = 'Lifetime'; }  else { validityText = p.productValidity.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()); } }
-                    tr.innerHTML = `<td><img src="${p.imageUrl}" alt="${p.title}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;"></td><td>${p.title}</td><td>৳${p.price}</td><td>${p.category}</td><td>${validityText}</td>
-                        <td><div class="action-buttons" style="flex-wrap:wrap;"><button class="btn btn-primary btn-sm" onclick="openEditProductModal('${p.id}',${JSON.stringify(p).replace(/"/g, '&quot;')})"><i class="fas fa-edit"></i> Edit</button><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}','${p.title}')"><i class="fas fa-trash"></i> Delete</button></div></td>`;
-                    tbody.appendChild(tr); }); });
+            storeProductsRef.on('value', snapshot => {
+                const prods = snapshot.val() || {};
+                const tbody = document.getElementById('product-list');
+                tbody.innerHTML = '';
+                const arr = Object.entries(prods).map(([id, d]) => ({ id, ...d })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                
+                if (arr.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No products found.</td></tr>';
+                    return;
+                }
+                
+                arr.forEach(p => {
+                    const tr = document.createElement('tr');
+                    let validityText = 'N/A';
+                    if (p.productValidity) {
+                        validityText = p.productValidity === 'lifetime' ? 'Lifetime' : p.productValidity.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    }
+                    
+                    const category = allStoreCategories.find(c => c.id === p.categoryKey);
+                    const categoryName = category ? category.name : 'Uncategorized';
+                    
+                    tr.innerHTML = `
+                        <td><img src="${p.imageUrl}" alt="${p.title}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;"></td>
+                        <td>${p.title}</td>
+                        <td>৳${p.price}</td>
+                        <td>${categoryName}</td>
+                        <td>${validityText}</td>
+                        <td><div class="action-buttons" style="flex-wrap:wrap;">
+                            <button class="btn btn-primary btn-sm" onclick="openEditProductModal('${p.id}', ${JSON.stringify(p).replace(/"/g, '&quot;')})"><i class="fas fa-edit"></i> Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}','${p.title}')"><i class="fas fa-trash"></i> Delete</button>
+                        </div></td>`;
+                    tbody.appendChild(tr);
+                });
+            });
         }
         
         function openEditProductModal(id, data) {
-            currentEditingProductId = id; data = typeof data === 'string' ? JSON.parse(data.replace(/&quot;/g, '"')) : data;
-            document.getElementById('editProductModalTitle').textContent = `Edit Product: ${data.title}`; document.getElementById('edit-product-image-url').value = data.imageUrl || ''; document.getElementById('edit-product-title').value = data.title || ''; document.getElementById('edit-product-price').value = data.price || 0; document.getElementById('edit-product-description').value = data.description || ''; document.getElementById('edit-product-category').value = data.category || ''; document.getElementById('edit-product-validity').value = data.productValidity || '1_month'; document.getElementById('editProductModal').classList.add('show');
+            currentEditingProductId = id; 
+            data = typeof data === 'string' ? JSON.parse(data.replace(/&quot;/g, '"')) : data;
+            
+            populateCategoryDropdowns(); // Ensure dropdown is fresh
+
+            document.getElementById('editProductModalTitle').textContent = `Edit Product: ${data.title}`; 
+            document.getElementById('edit-product-image-url').value = data.imageUrl || ''; 
+            document.getElementById('edit-product-title').value = data.title || ''; 
+            document.getElementById('edit-product-price').value = data.price || 0; 
+            document.getElementById('edit-product-description').value = data.description || ''; 
+            document.getElementById('edit-product-category').value = data.categoryKey || '';
+            document.getElementById('edit-product-validity').value = data.productValidity || '1_month'; 
+            document.getElementById('edit-product-type').value = data.productType || 'virtual';
+            document.getElementById('editProductModal').classList.add('show');
         }
 
         function saveProductChanges() {
-            if (!currentEditingProductId) return; const imgUrl = document.getElementById('edit-product-image-url').value.trim(); const title = document.getElementById('edit-product-title').value.trim(); const price = parseFloat(document.getElementById('edit-product-price').value) || 0; const desc = document.getElementById('edit-product-description').value.trim(); const cat = document.getElementById('edit-product-category').value; const validity = document.getElementById('edit-product-validity').value;
-            if (!imgUrl || !title || isNaN(price) || !desc || !cat || !validity) { alert('Please fill all fields, including validity.'); return; }
-            const updates = { imageUrl: imgUrl, title: title, price: price, description: desc, category: cat, productValidity: validity, updatedAt: Date.now() };
-            storeProductsRef.child(currentEditingProductId).update(updates).then(() => { alert('Product updated successfully!'); logActivity('Admin', `Updated product: ${title} (ID:${currentEditingProductId})`); closeEditProductModal(); }).catch(err => alert('Update error: ' + err.message));
+            if (!currentEditingProductId) return; 
+            const imgUrl = document.getElementById('edit-product-image-url').value.trim(); 
+            const title = document.getElementById('edit-product-title').value.trim(); 
+            const price = parseFloat(document.getElementById('edit-product-price').value) || 0; 
+            const desc = document.getElementById('edit-product-description').value.trim(); 
+            const categoryKey = document.getElementById('edit-product-category').value; 
+            const validity = document.getElementById('edit-product-validity').value;
+            const productType = document.getElementById('edit-product-type').value;
+            
+            if (!imgUrl || !title || isNaN(price) || !desc || !categoryKey || !validity) { 
+                alert('Please fill all fields, including selecting a category.'); 
+                return; 
+            }
+            
+            const updates = { 
+                imageUrl: imgUrl, 
+                title: title, 
+                price: price, 
+                description: desc, 
+                categoryKey: categoryKey,
+                productValidity: validity, 
+                productType: productType,
+                updatedAt: Date.now() 
+            };
+            
+            storeProductsRef.child(currentEditingProductId).update(updates).then(() => { 
+                alert('Product updated successfully!'); 
+                logActivity('Admin', `Updated product: ${title} (ID:${currentEditingProductId})`); 
+                closeEditProductModal(); 
+            }).catch(err => alert('Update error: ' + err.message));
         }
 
         function clearAdminNotificationHistory() {
@@ -800,7 +1040,7 @@
         function uploadRenewalPackage() { const daysSelect = document.getElementById('renewal-days'); const days = daysSelect.value; const rawPrice = document.getElementById('renewal-price').value.trim(); if (!rawPrice) { alert("Please enter a package price."); return; } const price = parseInt(rawPrice.replace(/[^\d]/g, '')); if (isNaN(price) || price <= 0) { alert("Please enter a valid positive price."); return; } const selectedOptionText = daysSelect.options[daysSelect.selectedIndex].text; const title = selectedOptionText.includes(" - ") ? selectedOptionText.split(" - ")[0] : selectedOptionText; const packageData = { title: title, days: parseInt(days), price: price, createdAt: Date.now() }; const newKey = storeRenewalsRef.push().key; storeRenewalsRef.child(newKey).set(packageData, error => { if (error) { alert("Failed to upload renewal package: " + error.message); console.error(error); } else { alert("Renewal package uploaded successfully!"); document.getElementById('renewal-price').value = ""; logActivity('Admin', `Uploaded renewal: ${title} (${days}d) ৳${price}`); } }); }
         function copyUploadedImageUrl() { const input = document.getElementById("uploaded-image-url"); if (input.value) { input.select(); input.setSelectionRange(0, 99999); navigator.clipboard.writeText(input.value).then(() => alert("Image URL copied!")).catch(err => { console.error("Failed to copy URL:", err); alert("Failed to copy URL."); }); } else { alert("No URL to copy yet."); } }
         function showImagePreview(url) { const img = document.getElementById("uploaded-image-preview"); img.src = url; img.style.display = "block"; }
-        function listUploadedImages() { const listRef = storageRef.child('images/products/'); const container = document.getElementById('uploaded-images-list'); container.innerHTML = '<p>Loading images...</p>'; listRef.listAll().then(res => { container.innerHTML = ''; if (res.items.length === 0) { container.innerHTML = '<p>No images in `images/products/`.</p>'; return; } res.items.forEach(itemRef => { itemRef.getDownloadURL().then(url => { const div = document.createElement('div'); div.style.cssText = "border:1px solid var(--border-color);padding:10px;border-radius:8px;text-align:center;"; const img = document.createElement('img'); img.src = url; img.alt = itemRef.name; img.style.cssText = "width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;"; const copyBtn = document.createElement('button'); copyBtn.className = 'btn btn-accent btn-sm'; copyBtn.style.width = '100%'; copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy URL'; copyBtn.onclick = () => navigator.clipboard.writeText(url).then(() => alert('URL copied!')).catch(()=>alert('Failed to copy.')); const delBtn = document.createElement('button'); delBtn.className = 'btn btn-danger btn-sm'; delBtn.style.cssText = 'width:100%;margin-top:5px;'; delBtn.innerHTML = '<i class="fas fa-trash"></i> Delete'; delBtn.onclick = () => { if (confirm(`Delete image: ${itemRef.name}?`)) { itemRef.delete().then(() => { alert('Image deleted!'); listUploadedImages(); logActivity('Admin', `Deleted image: ${itemRef.name}`); }).catch(err => { alert('Delete failed: '+err.message); console.error(err); }); } }; div.appendChild(img); div.appendChild(copyBtn); div.appendChild(delBtn); container.appendChild(div); }).catch(err => console.error("URL fetch error:", itemRef.name, err)); }); }).catch(err => { container.innerHTML = '<p>Error loading images.</p>'; console.error(err); }); }
+        function listUploadedImages() { const listRef = storageRef.child('images/'); const container = document.getElementById('uploaded-images-list'); container.innerHTML = '<p>Loading images...</p>'; listRef.listAll().then(res => { container.innerHTML = ''; if (res.items.length === 0) { container.innerHTML = '<p>No images uploaded yet.</p>'; return; } res.items.forEach(itemRef => { itemRef.getDownloadURL().then(url => { const div = document.createElement('div'); div.style.cssText = "border:1px solid var(--border-color);padding:10px;border-radius:8px;text-align:center;"; const img = document.createElement('img'); img.src = url; img.alt = itemRef.name; img.style.cssText = "width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;"; const copyBtn = document.createElement('button'); copyBtn.className = 'btn btn-accent btn-sm'; copyBtn.style.width = '100%'; copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy URL'; copyBtn.onclick = () => navigator.clipboard.writeText(url).then(() => alert('URL copied!')).catch(()=>alert('Failed to copy.')); const delBtn = document.createElement('button'); delBtn.className = 'btn btn-danger btn-sm'; delBtn.style.cssText = 'width:100%;margin-top:5px;'; delBtn.innerHTML = '<i class="fas fa-trash"></i> Delete'; delBtn.onclick = () => { if (confirm(`Delete image: ${itemRef.name}?`)) { itemRef.delete().then(() => { alert('Image deleted!'); listUploadedImages(); logActivity('Admin', `Deleted image: ${itemRef.name}`); }).catch(err => { alert('Delete failed: '+err.message); console.error(err); }); } }; div.appendChild(img); div.appendChild(copyBtn); div.appendChild(delBtn); container.appendChild(div); }).catch(err => console.error("URL fetch error:", itemRef.name, err)); }); }).catch(err => { container.innerHTML = '<p>Error loading images.</p>'; console.error(err); }); }
         
         function loadDashboardStats() { 
             usersRef.once('value', snapshot => { const users = snapshot.val() || {}; const total = Object.keys(users).length; let active = 0, blocked = 0; Object.values(users).forEach(u => { if (u.isBlocked) blocked++; else if (!u.expiryDate || new Date(u.expiryDate) >= new Date()) active++; }); document.getElementById('total-users').textContent = total; document.getElementById('active-users').textContent = active; document.getElementById('blocked-users').textContent = blocked; });
@@ -1125,39 +1365,38 @@
         
         // **REWRITTEN STOCKS & DISCOUNT FUNCTIONS**
         function loadStocksDiscountTab() {
-             Promise.all([
+            Promise.all([
                 storeProductsRef.once('value'),
-                stocksDiscountRef.once('value')
+                stocksDiscountRef.once('value') // Still needed for discounts
             ]).then(([productsSnapshot, stocksSnapshot]) => {
                 const products = productsSnapshot.val() || {};
-                const stocksData = stocksSnapshot.val() || {};
+                const stocksData = stocksSnapshot.val() || {}; // This is for discounts
                 
                 const productStatusList = document.getElementById('product-status-list');
-                const lifetimeSelect = document.getElementById('lifetime-discount-select');
-                const timedSelect = document.getElementById('timed-discount-select');
-
                 productStatusList.innerHTML = '';
-                const currentLifetimeVal = lifetimeSelect.value;
-                const currentTimedVal = timedSelect.value;
-                
-                // Clear dropdowns
-                while (lifetimeSelect.options.length > 1) lifetimeSelect.remove(1);
-                while (timedSelect.options.length > 1) timedSelect.remove(1);
 
                 if (Object.keys(products).length === 0) {
                     productStatusList.innerHTML = '<tr><td colspan="5" style="text-align: center;">No products found. Add products in "Manage Store" tab.</td></tr>';
                     return;
                 }
 
+                // Populate the dropdowns for discounts first
+                const lifetimeSelect = document.getElementById('lifetime-discount-select');
+                const timedSelect = document.getElementById('timed-discount-select');
+                const currentLifetimeVal = lifetimeSelect.value;
+                const currentTimedVal = timedSelect.value;
+                while (lifetimeSelect.options.length > 1) lifetimeSelect.remove(1);
+                while (timedSelect.options.length > 1) timedSelect.remove(1);
+
                 Object.entries(products).forEach(([id, product]) => {
+                    // **CORRECTED STOCK LOGIC**
+                    // Read 'inStock' directly from the product object. Default to true if not present.
+                    const inStock = (product.inStock === undefined) ? true : product.inStock;
+
+                    // Discount logic remains the same, using stocksData
                     const cleanTitle = (product.title || '').replace(/\s+/g, '');
-                    const stockKey = cleanTitle + 'Stock';
                     const discountKey = cleanTitle + 'Discount';
-
-                    const stockValue = stocksData[stockKey];
                     const discountString = stocksData[discountKey];
-
-                    const inStock = stockValue === 'Ture' || stockValue === true || stockValue === 'True';
                     const discountPercentage = parseInt(String(discountString)) || 0;
                     
                     let priceDisplay = `৳${product.price}`;
@@ -1168,12 +1407,16 @@
 
                     const stockStatusDisplay = inStock ? `<span class="status-badge status-active">In Stock</span>` : `<span class="status-badge status-blocked">Out of Stock</span>`;
                     const discountInfo = discountPercentage > 0 ? `${discountPercentage}% off` : 'None';
-                    const stockToggleButton = `<button class="btn ${inStock ? 'btn-warning' : 'btn-success'} btn-sm" onclick="toggleStockStatus('${cleanTitle}', ${inStock})"><i class="fas fa-power-off"></i> ${inStock ? 'Set OOS' : 'Set In Stock'}</button>`;
+                    
+                    // **CORRECTED BUTTON ONCLICK**
+                    // It now passes the product's unique 'id' instead of the title.
+                    const stockToggleButton = `<button class="btn ${inStock ? 'btn-warning' : 'btn-success'} btn-sm" onclick="toggleStockStatus('${id}', ${inStock})"><i class="fas fa-power-off"></i> ${inStock ? 'Set OOS' : 'Set In Stock'}</button>`;
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `<td>${product.title || 'N/A'}</td><td>${priceDisplay}</td><td>${stockStatusDisplay}</td><td>${discountInfo}</td><td><div class="action-buttons">${stockToggleButton}</div></td>`;
                     productStatusList.appendChild(tr);
 
+                    // Populate discount dropdowns
                     const option = document.createElement('option');
                     option.value = id;
                     option.textContent = product.title;
@@ -1282,27 +1525,178 @@
                 .catch(err => alert("Error removing discount: " + err.message));
         }
 
-        function toggleStockStatus(cleanTitle, isCurrentlyInStock) {
+        function toggleStockStatus(productId, isCurrentlyInStock) {
             const newStockStatus = !isCurrentlyInStock;
             const action = newStockStatus ? "In Stock" : "Out of Stock";
-            const newStockString = newStockStatus ? "True" : "False";
-            const stockKey = cleanTitle + 'Stock';
 
             if (confirm(`Set this product as "${action}"?`)) {
-                stocksDiscountRef.child(stockKey).set(newStockString)
+                storeProductsRef.child(productId).update({ inStock: newStockStatus })
                     .then(() => {
                         alert(`Product status updated to "${action}".`);
-                        logActivity('Admin', `Set ${cleanTitle} to ${action}`);
-                        loadStocksDiscountTab();
+                        logActivity('Admin', `Set product ${productId} to ${action}`);
+                        loadStocksDiscountTab(); // Refresh the view
                     })
                     .catch(err => alert("Error updating stock status: " + err.message));
             }
         }
         
-        async function uploadImage() { const fileInput = document.getElementById('image-upload-input'); const urlInput = document.getElementById('uploaded-image-url'); const copyBtn = document.getElementById('copy-image-url-btn'); const progBar = document.getElementById('upload-progress-bar'); const statMsg = document.getElementById('upload-status-message'); const preview = document.getElementById('uploaded-image-preview'); const file = fileInput.files[0]; if (!file) { alert('Select an image.'); return; } urlInput.value = ''; copyBtn.disabled = true; progBar.style.width = '0%'; progBar.style.backgroundColor='var(--primary-color)'; progBar.style.display='block'; statMsg.textContent='Uploading...'; statMsg.style.color='var(--secondary-text)'; statMsg.style.display='block'; preview.style.display='none'; preview.src=''; const fileName = `products/${Date.now()}_${file.name}`; const imgRef = storageRef.child('images/' + fileName); const task = imgRef.put(file); task.on('state_changed', snap => { const prog = (snap.bytesTransferred / snap.totalBytes) * 100; progBar.style.width = prog + '%'; statMsg.textContent = `Upload ${Math.floor(prog)}%`; if(snap.state===firebase.storage.TaskState.PAUSED) statMsg.textContent='Paused'; }, err => { console.error(err); alert('Upload failed: '+err.message); statMsg.textContent=`Failed: ${err.code}`; statMsg.style.color='var(--danger-color)'; progBar.style.backgroundColor='var(--danger-color)'; }, () => { task.snapshot.ref.getDownloadURL().then(dlURL => { urlInput.value = dlURL; copyBtn.disabled = false; progBar.style.backgroundColor='var(--success-color)'; statMsg.textContent='Complete! URL ready.'; statMsg.style.color='var(--success-color)'; alert('Image uploaded! URL ready.'); logActivity('Admin', `Uploaded image: ${fileName}`); document.getElementById('product-image-url').value = dlURL; showImagePreview(dlURL); listUploadedImages(); }); }); }
+        async function uploadImage() { const fileInput = document.getElementById('image-upload-input'); const urlInput = document.getElementById('uploaded-image-url'); const copyBtn = document.getElementById('copy-image-url-btn'); const progBar = document.getElementById('upload-progress-bar'); const statMsg = document.getElementById('upload-status-message'); const preview = document.getElementById('uploaded-image-preview'); const file = fileInput.files[0]; if (!file) { alert('Select an image.'); return; } urlInput.value = ''; copyBtn.disabled = true; progBar.style.width = '0%'; progBar.style.backgroundColor='var(--primary-color)'; progBar.style.display='block'; statMsg.textContent='Uploading...'; statMsg.style.color='var(--secondary-text)'; statMsg.style.display='block'; preview.style.display='none'; preview.src=''; const fileName = `store_assets/${Date.now()}_${file.name}`; const imgRef = storageRef.child('images/' + fileName); const task = imgRef.put(file); task.on('state_changed', snap => { const prog = (snap.bytesTransferred / snap.totalBytes) * 100; progBar.style.width = prog + '%'; statMsg.textContent = `Upload ${Math.floor(prog)}%`; if(snap.state===firebase.storage.TaskState.PAUSED) statMsg.textContent='Paused'; }, err => { console.error(err); alert('Upload failed: '+err.message); statMsg.textContent=`Failed: ${err.code}`; statMsg.style.color='var(--danger-color)'; progBar.style.backgroundColor='var(--danger-color)'; }, () => { task.snapshot.ref.getDownloadURL().then(dlURL => { urlInput.value = dlURL; copyBtn.disabled = false; progBar.style.backgroundColor='var(--success-color)'; statMsg.textContent='Complete! URL ready.'; statMsg.style.color='var(--success-color)'; alert('Image uploaded! URL ready.'); logActivity('Admin', `Uploaded image: ${fileName}`); document.getElementById('product-image-url').value = dlURL; showImagePreview(dlURL); listUploadedImages(); }); }); }
         function deleteProductConfirm() { if(!currentEditingProductId)return; const title=document.getElementById('edit-product-title').value||'this product'; if(confirm(`Delete '${title}'?`)) deleteProduct(currentEditingProductId,title); }
         function deleteProduct(id,title) { if (confirm(`Are you sure you want to delete product '${title}'? This cannot be undone.`)) { storeProductsRef.child(id).remove().then(()=>{alert(`Product '${title}' deleted.`);logActivity('Admin',`Deleted: ${title} (ID:${id})`);if(currentEditingProductId===id)closeEditProductModal();}).catch(err=>alert('Delete error: '+err.message)); } }
         function closeEditProductModal(){ document.getElementById('editProductModal').classList.remove('show');currentEditingProductId=null;}
+
+        // --- NEW CATEGORY FUNCTIONS ---
+        function displayCategoriesInAdmin() {
+            const tbody = document.getElementById('category-list-table');
+            tbody.innerHTML = '';
+            if (allStoreCategories.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No categories found. Click "Add Category" to start.</td></tr>';
+                return;
+            }
+            
+            allStoreCategories
+                .sort((a, b) => (a.order || 99) - (b.order || 99))
+                .forEach(cat => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><img src="${cat.imageUrl}" alt="${cat.name}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;"></td>
+                        <td>${cat.name}</td>
+                        <td>${cat.description}</td>
+                        <td>${cat.order || 'N/A'}</td>
+                        <td>
+                            <div class="action-buttons" style="flex-wrap:wrap;">
+                                <button class="btn btn-primary btn-sm" onclick="openCategoryModal(true, '${cat.id}', ${JSON.stringify(cat).replace(/"/g, '&quot;')})"><i class="fas fa-edit"></i> Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteCategory('${cat.id}', '${cat.name}')"><i class="fas fa-trash"></i> Delete</button>
+                            </div>
+                        </td>`;
+                    tbody.appendChild(tr);
+                });
+        }
+
+        function openCategoryModal(isEditing = false, categoryId = null, data = {}) {
+            currentEditingCategoryId = isEditing ? categoryId : null;
+            const modal = document.getElementById('categoryModal');
+            document.getElementById('categoryModalTitle').textContent = isEditing ? `Edit Category: ${data.name}` : 'Add New Category';
+            document.getElementById('category-name').value = data.name || '';
+            document.getElementById('category-description').value = data.description || '';
+            document.getElementById('category-image-url').value = data.imageUrl || '';
+            document.getElementById('category-order').value = data.order || '';
+            modal.classList.add('show');
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.remove('show');
+            currentEditingCategoryId = null;
+        }
+
+        function saveCategory() {
+            const name = document.getElementById('category-name').value.trim();
+            const description = document.getElementById('category-description').value.trim();
+            const imageUrl = document.getElementById('category-image-url').value.trim();
+            const order = parseInt(document.getElementById('category-order').value) || 99;
+
+            if (!name || !description || !imageUrl) {
+                alert('Please fill all category fields.');
+                return;
+            }
+
+            const categoryKey = currentEditingCategoryId || name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+            if (!categoryKey) {
+                alert("Could not generate a valid key from the category name. Please use A-Z letters and numbers only.");
+                return;
+            }
+            
+            const categoryData = { name, description, imageUrl, order };
+
+            storeCategoriesRef.child(categoryKey).set(categoryData)
+                .then(() => {
+                    const action = currentEditingCategoryId ? 'updated' : 'created';
+                    alert(`Category ${action} successfully!`);
+                    logActivity('Admin', `${action} category: ${name}`);
+                    closeCategoryModal();
+                    loadManageStoreTab(); // Refresh the entire tab
+                })
+                .catch(err => alert(`Error saving category: ${err.message}`));
+        }
+
+        function deleteCategory(categoryId, categoryName) {
+            if (!confirm(`Are you sure you want to delete the category "${categoryName}"? This cannot be undone.`)) return;
+
+            // Check if any products are using this category
+            storeProductsRef.orderByChild('categoryKey').equalTo(categoryId).once('value', snapshot => {
+                if (snapshot.exists()) {
+                    alert(`Cannot delete category "${categoryName}" because some products are still assigned to it. Please re-assign those products to another category first.`);
+                } else {
+                    storeCategoriesRef.child(categoryId).remove()
+                        .then(() => {
+                            alert(`Category "${categoryName}" deleted successfully.`);
+                            logActivity('Admin', `Deleted category: ${categoryName}`);
+                            loadManageStoreTab();
+                        })
+                        .catch(err => alert(`Error deleting category: ${err.message}`));
+                }
+            });
+        }
+        
+        // --- NEW PHYSICAL ORDERS FUNCTIONS ---
+        function loadPhysicalOrders() {
+            const tbody = document.getElementById('physical-orders-list');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading orders...</td></tr>';
+
+            physicalOrdersRef.orderByChild('timestamp').on('value', snapshot => {
+                const orders = snapshot.val() || {};
+                tbody.innerHTML = '';
+                const arr = Object.entries(orders).map(([id, d]) => ({ id, ...d })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                
+                if (arr.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No physical orders found.</td></tr>';
+                    return;
+                }
+
+                arr.forEach(order => {
+                    const tr = document.createElement('tr');
+                    const status = order.status || 'Pending';
+                    const statusClass = status.toLowerCase().replace(' ', '-');
+                    
+                    tr.innerHTML = `
+                        <td>${new Date(order.timestamp).toLocaleString()}</td>
+                        <td>${order.userId}</td>
+                        <td>${order.productTitle}</td>
+                        <td>
+                            <strong>Name:</strong> ${order.fullName}<br>
+                            <strong>WhatsApp:</strong> ${order.whatsapp}<br>
+                            <strong>Gmail:</strong> ${order.gmail || 'N/A'}
+                        </td>
+                        <td><span class="status-badge status-${statusClass}">${status}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                ${status !== 'Shipped' ? `<button class="btn btn-success btn-sm" onclick="updateOrderStatus('${order.id}', 'Shipped')">Mark Shipped</button>` : ''}
+                                <button class="btn btn-danger btn-sm" onclick="updateOrderStatus('${order.id}', null)">Delete</button>
+                            </div>
+                        </td>`;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        function updateOrderStatus(orderId, newStatus) {
+            const orderRef = database.ref('physical_orders/' + orderId);
+            if (newStatus === null) { // This means delete
+                if (confirm('Are you sure you want to delete this order? This cannot be undone.')) {
+                    orderRef.remove().then(() => {
+                        alert('Order deleted successfully.');
+                        logActivity('Admin', `Deleted physical order ${orderId}`);
+                    }).catch(err => alert('Error deleting order: ' + err.message));
+                }
+            } else {
+                 if (confirm(`Are you sure you want to mark this order as "${newStatus}"?`)) {
+                    orderRef.update({ status: newStatus }).then(() => {
+                        alert(`Order status updated to "${newStatus}".`);
+                        logActivity('Admin', `Updated physical order ${orderId} to ${newStatus}`);
+                    }).catch(err => alert('Error updating order status: ' + err.message));
+                 }
+            }
+        }
 </script>
 </body>
 </html>
